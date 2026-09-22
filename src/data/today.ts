@@ -25,3 +25,9 @@ export function todayView(tasks: Task[], today: DateString): { overdue: Task[]; 
       .sort((a, b) => Number(a.done) - Number(b.done) || a.sort_order - b.sort_order),
   }
 }
+
+/** Günün ilk açılışında sorulacak, önceki günlerden kalmış yapılmamış görevler. */
+export function morningReview(tasks: Task[], today: DateString, reviewedOn: DateString | null): Task[] {
+  if (reviewedOn === today) return []
+  return todayView(tasks, today).overdue
+}

@@ -1,6 +1,7 @@
 import { useLiveQuery } from 'dexie-react-hooks'
-import { todayView } from '../data/today'
+import { morningReview, todayView } from '../data/today'
 import { store } from './context'
+import { MorningReview } from './MorningReview'
 import { QuickAdd } from './QuickAdd'
 import { TaskItem } from './TaskItem'
 import { useToday } from './useToday'
@@ -8,8 +9,11 @@ import { useToday } from './useToday'
 export function TodayScreen() {
   const today = useToday()
   const tasks = useLiveQuery(() => store.allTasks(), [])
-  if (!tasks) return null
+  // useLiveQuery yüklenirken undefined döner; null ise "hiç gözden geçirilmedi" anlamına gelir.
+  const reviewedOn = useLiveQuery(() => store.reviewedOn(), [])
+  if (!tasks || reviewedOn === undefined) return null
   const view = todayView(tasks, today)
+  const review = morningReview(tasks, today, reviewedOn)
 
   return (
     <>
@@ -18,7 +22,8 @@ export function TodayScreen() {
       </header>
       <main className="content">
         <QuickAdd placeholder="Bugün için görev ekle…" onAdd={(title) => store.addTask(title, { dueDate: today })} />
-        {view.overdue.length > 0 && (
+        {review.length > 0 && <MorningReview tasks={review} today={today} />}
+        {review.length === 0 && view.overdue.length > 0 && (
           <>
             <h2 className="section-title overdue">Gecikmiş</h2>
             <ul className="tasks">

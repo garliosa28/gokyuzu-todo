@@ -110,3 +110,14 @@ button { cursor: pointer; -webkit-tap-highlight-color: transparent; }
   font-size: 14px; color: var(--muted);
 }
 .tabbar button.active { color: var(--text); font-weight: 600; }
+
+/* Sabah gözden geçirmesi */
+.review { margin-top: 16px; padding: 12px 14px; border-radius: 12px; background: var(--warn-bg); }
+.review-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.review ul { list-style: none; padding: 0; margin: 8px 0 0; }
+.review li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px; padding: 8px 0; border-top: 1px solid var(--line); }
+.review-title { flex: 1 1 140px; }
+.review-actions { display: flex; gap: 6px; }
+.review-actions button { padding: 5px 10px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); font-size: 14px; }
+.link { background: none; border: none; color: var(--muted); font-size: 14px; text-decoration: underline; padding: 0; }
+.review .meta { color: var(--muted); font-size: 13px; }

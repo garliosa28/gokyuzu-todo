@@ -1,4 +1,4 @@
-import type { TodoDB } from './db'
+import { getMeta, setMeta, type TodoDB } from './db'
 import { INBOX_ID, type DateString, type List, type Local, type Task } from './types'
 
 export type TaskPatch = Partial<Pick<Task, 'title' | 'list_id' | 'due_date'>>
@@ -105,6 +105,14 @@ export function createStore(db: TodoDB, { now = () => new Date() }: StoreOptions
     async lists(): Promise<List[]> {
       const rows = await db.lists.toArray()
       return rows.filter((l) => !l.deleted_at).sort((a, b) => a.sort_order - b.sort_order)
+    },
+
+    reviewedOn(): Promise<DateString | null> {
+      return getMeta(db, 'reviewedOn')
+    },
+
+    markReviewed(day: DateString): Promise<void> {
+      return setMeta(db, 'reviewedOn', day)
     },
 
     async allTasks(): Promise<Task[]> {

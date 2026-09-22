@@ -89,3 +89,11 @@ describe('son tarih', () => {
     expect((await store.allTasks()).map((t) => t.due_date)).toEqual([null])
   })
 })
+
+describe('sabah gözden geçirmesi', () => {
+  it('gözden geçirilen gün kalıcı olarak hatırlanır', async () => {
+    expect(await store.reviewedOn()).toBeNull()
+    await store.markReviewed('2026-09-22')
+    expect(await store.reviewedOn()).toBe('2026-09-22')
+  })
+})

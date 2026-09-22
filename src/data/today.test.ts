@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { todayView } from './today'
+import { morningReview, todayView } from './today'
 import type { Task } from './types'
 
 let n = 0
@@ -56,5 +56,26 @@ describe('Bugün görünümü', () => {
   it('silinmiş görevleri göstermez', () => {
     const view = todayView([task('Silindi', { due_date: today, deleted_at: '2026-09-22T09:00:00Z' })], today)
     expect(view.today).toEqual([])
+  })
+})
+
+describe('sabah gözden geçirmesi', () => {
+  const today = '2026-09-22'
+  const leftovers = [
+    task('Dün kalan', { due_date: '2026-09-21' }),
+    task('Dün yapılan', { due_date: '2026-09-21', done: true }),
+    task('Bugünkü', { due_date: today }),
+  ]
+
+  it('günün ilk açılışında önceki günlerden kalan yapılmamış görevleri sorar', () => {
+    expect(titles(morningReview(leftovers, today, '2026-09-21'))).toEqual(['Dün kalan'])
+  })
+
+  it('daha önce hiç gözden geçirme yapılmadıysa da sorar', () => {
+    expect(titles(morningReview(leftovers, today, null))).toEqual(['Dün kalan'])
+  })
+
+  it('bugün zaten gözden geçirildiyse bir daha sormaz', () => {
+    expect(morningReview(leftovers, today, today)).toEqual([])
   })
 })
