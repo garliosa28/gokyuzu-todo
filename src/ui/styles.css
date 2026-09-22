@@ -148,4 +148,5 @@ button { cursor: pointer; -webkit-tap-highlight-color: transparent; }
 .button-row { display: flex; flex-wrap: wrap; gap: 8px; }
 .muted { color: var(--muted); }
 .error { color: var(--danger); }
-code { font-size: .9em; }
+/* Yalnızca "monospace" yazılırsa tarayıcı 13px temel boyuta düşer; başka bir yazı tipi adı bunu engeller. */
+code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: .9em; }
