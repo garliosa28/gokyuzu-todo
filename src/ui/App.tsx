@@ -1,24 +1,42 @@
-import { useLiveQuery } from 'dexie-react-hooks'
+import { useEffect, useState } from 'react'
 import { INBOX_ID } from '../data/types'
 import { store } from './context'
-import { QuickAdd } from './QuickAdd'
-import { TaskItem } from './TaskItem'
+import { ListScreen } from './ListScreen'
+import { ListsScreen } from './ListsScreen'
+import { TodayScreen } from './TodayScreen'
+
+export type View = { kind: 'today' } | { kind: 'lists' } | { kind: 'list'; id: string }
 
 export function App() {
-  const tasks = useLiveQuery(() => store.tasksInList(INBOX_ID), [])
+  const [view, setView] = useState<View>({ kind: 'today' })
+
+  useEffect(() => {
+    store.ensureInbox()
+  }, [])
+
+  const tab = view.kind === 'list' && view.id === INBOX_ID ? 'inbox' : view.kind === 'list' ? 'lists' : view.kind
 
   return (
     <div className="app">
-      <header className="header">
-        <h1>Gelen Kutusu</h1>
-      </header>
-      <main className="content">
-        <QuickAdd onAdd={(title) => store.addTask(title)} />
-        <ul className="tasks">
-          {tasks?.map((t) => <TaskItem key={t.id} task={t} />)}
-        </ul>
-        {tasks?.length === 0 && <p className="empty">Henüz görev yok.</p>}
-      </main>
+      {view.kind === 'today' && <TodayScreen />}
+      {view.kind === 'lists' && <ListsScreen onOpen={(id) => setView({ kind: 'list', id })} />}
+      {view.kind === 'list' && (
+        <ListScreen
+          listId={view.id}
+          onBack={view.id === INBOX_ID ? undefined : () => setView({ kind: 'lists' })}
+        />
+      )}
+      <nav className="tabbar">
+        <button className={tab === 'today' ? 'active' : ''} onClick={() => setView({ kind: 'today' })}>
+          Bugün
+        </button>
+        <button className={tab === 'inbox' ? 'active' : ''} onClick={() => setView({ kind: 'list', id: INBOX_ID })}>
+          Gelen Kutusu
+        </button>
+        <button className={tab === 'lists' ? 'active' : ''} onClick={() => setView({ kind: 'lists' })}>
+          Listeler
+        </button>
+      </nav>
     </div>
   )
 }

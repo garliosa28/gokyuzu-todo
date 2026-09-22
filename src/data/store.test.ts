@@ -39,3 +39,53 @@ describe('görevler', () => {
     expect(await store.tasksInList(INBOX_ID)).toEqual([])
   })
 })
+
+describe('listeler', () => {
+  it('gelen kutusu her zaman ilk listedir ve bir kez oluşturulur', async () => {
+    await store.ensureInbox()
+    await store.ensureInbox()
+    await store.addList('İş')
+    expect((await store.lists()).map((l) => l.name)).toEqual(['Gelen Kutusu', 'İş'])
+  })
+
+  it('liste yeniden adlandırılabilir', async () => {
+    const list = await store.addList('İş')
+    await store.renameList(list.id, 'Ofis')
+    expect((await store.lists()).map((l) => l.name)).toEqual(['Ofis'])
+  })
+
+  it('görev doğrudan bir listeye eklenebilir ve başka listeye taşınabilir', async () => {
+    const work = await store.addList('İş')
+    const task = await store.addTask('Rapor yaz', { listId: work.id })
+    expect((await store.tasksInList(work.id)).map((t) => t.title)).toEqual(['Rapor yaz'])
+
+    await store.updateTask(task.id, { list_id: INBOX_ID })
+    expect(await store.tasksInList(work.id)).toEqual([])
+    expect((await store.tasksInList(INBOX_ID)).map((t) => t.title)).toEqual(['Rapor yaz'])
+  })
+
+  it('silinen liste ve içindeki görevler kaybolur', async () => {
+    const work = await store.addList('İş')
+    await store.addTask('Rapor yaz', { listId: work.id })
+    await store.deleteList(work.id)
+    expect(await store.lists()).toEqual([])
+    expect(await store.tasksInList(work.id)).toEqual([])
+  })
+
+  it('gelen kutusu silinemez', async () => {
+    await store.ensureInbox()
+    await expect(store.deleteList(INBOX_ID)).rejects.toThrow()
+    expect((await store.lists()).map((l) => l.id)).toEqual([INBOX_ID])
+  })
+})
+
+describe('son tarih', () => {
+  it('görev tarihle eklenebilir, tarihi değiştirilip kaldırılabilir', async () => {
+    const task = await store.addTask('Fatura', { dueDate: '2026-09-22' })
+    expect((await store.allTasks()).map((t) => t.due_date)).toEqual(['2026-09-22'])
+    await store.updateTask(task.id, { due_date: '2026-09-25' })
+    expect((await store.allTasks()).map((t) => t.due_date)).toEqual(['2026-09-25'])
+    await store.updateTask(task.id, { due_date: null })
+    expect((await store.allTasks()).map((t) => t.due_date)).toEqual([null])
+  })
+})

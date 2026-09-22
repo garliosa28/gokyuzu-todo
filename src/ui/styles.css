@@ -26,7 +26,7 @@
 * { box-sizing: border-box; }
 html, body { margin: 0; background: var(--bg); color: var(--text); }
 button, input, select { font: inherit; color: inherit; }
-button { cursor: pointer; }
+button { cursor: pointer; -webkit-tap-highlight-color: transparent; }
 
 .app {
   max-width: 640px;
@@ -34,20 +34,37 @@ button { cursor: pointer; }
   min-height: 100dvh;
   padding: env(safe-area-inset-top) 0 calc(64px + env(safe-area-inset-bottom));
 }
-.header { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 16px 16px 4px; }
-.header h1 { font-size: 28px; margin: 0; }
+
+/* Başlık */
+.header { display: flex; align-items: center; gap: 8px; padding: 16px 16px 4px; }
+.header h1 { font-size: 28px; margin: 0; flex: 1; }
+.back { background: none; border: none; font-size: 32px; line-height: 1; padding: 0 8px 0 0; }
 .content { padding: 8px 16px; }
-.section-title { font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin: 20px 0 6px; }
+.section-title { font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin: 20px 0 0; }
 .section-title.overdue { color: var(--danger); }
 .empty { color: var(--muted); text-align: center; margin-top: 40px; }
 
+/* Hızlı ekleme */
+.quick-add { display: flex; gap: 8px; }
 .quick-add input {
-  width: 100%; padding: 12px 14px; font-size: 17px;
+  flex: 1; min-width: 0; padding: 12px 14px; font-size: 17px;
   border: 1px solid var(--line); border-radius: 12px; background: var(--surface);
 }
+.quick-add button {
+  flex: none; width: 48px; border-radius: 12px; border: none;
+  background: var(--accent); color: var(--bg); font-size: 24px;
+}
+.quick-add button:disabled { opacity: .3; }
+
+/* Görevler */
 .tasks { list-style: none; padding: 0; margin: 8px 0 0; }
-.task { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line); }
-.task .title { flex: 1; font-size: 17px; word-break: break-word; }
+.task { border-bottom: 1px solid var(--line); }
+.task-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; }
+.task-main {
+  flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 2px;
+  background: none; border: none; padding: 0; text-align: left;
+}
+.task .title { font-size: 17px; word-break: break-word; }
 .task.done .title { color: var(--muted); text-decoration: line-through; }
 .task .meta { font-size: 13px; color: var(--muted); }
 .task .meta.overdue { color: var(--danger); }
@@ -56,12 +73,40 @@ button { cursor: pointer; }
   border: 2px solid var(--muted); background: none; font-size: 14px; line-height: 1; padding: 0;
 }
 .task.done .check { background: var(--accent); border-color: var(--accent); color: var(--bg); }
-.icon { background: none; border: none; font-size: 22px; color: var(--muted); padding: 0 4px; }
 
-.quick-add { display: flex; gap: 8px; }
-.quick-add input { flex: 1; min-width: 0; }
-.quick-add button {
-  flex: none; width: 48px; border-radius: 12px; border: none;
-  background: var(--accent); color: var(--bg); font-size: 24px;
+/* Görev düzenleyici */
+.editor { display: flex; flex-direction: column; gap: 10px; padding: 0 0 14px 38px; }
+.editor input:not([type='date']), .editor select {
+  width: 100%; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface);
 }
-.quick-add button:disabled { opacity: .3; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chips button, .chips input[type='date'] {
+  padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); font-size: 14px;
+}
+.editor-row { display: flex; gap: 8px; }
+.editor-row select { flex: 1; }
+.danger { border: 1px solid var(--danger); color: var(--danger); background: none; border-radius: 8px; padding: 6px 14px; }
+
+/* Listeler */
+.lists { list-style: none; padding: 0; margin: 8px 0 0; }
+.lists li { display: flex; align-items: center; border-bottom: 1px solid var(--line); }
+.list-open {
+  flex: 1; display: flex; justify-content: space-between; padding: 14px 8px 14px 0;
+  background: none; border: none; font-size: 17px; text-align: left;
+}
+.count { color: var(--muted); }
+.icon { background: none; border: none; font-size: 22px; color: var(--muted); padding: 0 6px; }
+.icon.small { font-size: 17px; }
+
+/* Alt sekme çubuğu */
+.tabbar {
+  position: fixed; left: 0; right: 0; bottom: 0;
+  display: flex; justify-content: center;
+  padding: 0 0 env(safe-area-inset-bottom);
+  background: var(--surface); border-top: 1px solid var(--line);
+}
+.tabbar button {
+  flex: 1; max-width: 213px; padding: 14px 0; background: none; border: none;
+  font-size: 14px; color: var(--muted);
+}
+.tabbar button.active { color: var(--text); font-weight: 600; }
