@@ -1,6 +1,6 @@
 # Kişisel Todo Uygulaması — Plan
 
-> Durum: **Planlama.** Henüz kod yok.
+> Durum: **MVP uygulandı** (ticket 01-08). Supabase kurulumu ve yayına alma için bkz. [SETUP.md](SETUP.md).
 > Tarih: 2026-09-22
 
 ## 1. Amaç
@@ -20,6 +20,11 @@ Sadece benim kullanacağım, iPhone'da ve bilgisayarda çalışan, senkronize ve
 | Q8 | Cihazlar | **Telefon + bilgisayar (tarayıcı)** | |
 | Q9 | Çevrimdışı | **Evet, tam çalışsın** ("e" = evet varsayıldı) | Aklıma geleni anında yazabilmeliyim |
 | Q10 | Backend | **Supabase (ücretsiz katman)** | Auth + Postgres hazır, sunucu yönetimi yok |
+| Q12 | Görev yazma anı | Hızlı yakalama (gelen kutusu) + planlama *(varsayılan öneri)* | |
+| Q13 | Gün düzeni | Bağlam listeleri + Bugün görünümü *(varsayılan öneri)* | |
+| Q14 | Açılış ekranı | **Bugün** *(varsayılan öneri)* | |
+| Q15 | Kalan görevler | **Sabah gözden geçirmesi**: Bugün / Ertele / Sil *(varsayılan öneri)* | |
+| Q16 | Rutinler | MVP dışında *(varsayılan öneri)* | |
 
 ## 3. Mimari
 
@@ -30,10 +35,10 @@ Sadece benim kullanacağım, iPhone'da ve bilgisayarda çalışan, senkronize ve
 ```
 
 - **Local-first:** UI her zaman yerel veritabanından (IndexedDB) okur ve oraya yazar. Uygulama internet olmadan da tamamen çalışır.
-- **Senkron katmanı:** Yerel değişiklikleri bir kuyrukta biriktirir. İnternet olduğunda Supabase'e gönderir, sonra `updated_at > son_senkron` olan kayıtları çeker. Tetikleyiciler: uygulama açılışı, `online` olayı, sekmeye geri dönüş ve periyodik kontrol.
-- **Çakışma çözümü:** Kayıt bazında **son yazan kazanır**, `updated_at`'e göre. Tek kullanıcı için yeterli.
+- **Senkron katmanı:** Değişen satırlar yerelde `dirty = 1` ile işaretlenir. İnternet olduğunda Supabase'e gönderilir (upsert), sonra sunucu zamanı `synced_at` imleçten büyük olan satırlar çekilir. İmleç olarak istemci saati değil sunucu saati kullanılır; böylece günlerce çevrimdışı kalıp sonradan gönderilen değişiklikler de kaçırılmaz. Tetikleyiciler: uygulama açılışı, yerel değişiklik (1,5 sn bekleme), `online` olayı, uygulamaya geri dönüş ve dakikada bir.
+- **Çakışma çözümü:** Kayıt bazında **son yazan kazanır**, `updated_at`'e göre. Hem sunucuda (SQL tetikleyicisi) hem istemcide uygulanır. Tek kullanıcı için yeterli.
 - **Silme:** Doğrudan silme yok, **soft delete** (`deleted_at`). Böylece silme işlemi de diğer cihaza senkronize olur.
-- **ID'ler:** İstemcide üretilen UUID. Çevrimdışıyken de kayıt oluşturulabilir.
+- **ID'ler:** İstemcide üretilen UUID. Çevrimdışıyken de kayıt oluşturulabilir. Gelen Kutusu'nun sabit id'si `inbox`.
 
 ## 4. Teknoloji seçimleri
 
@@ -50,41 +55,25 @@ Sadece benim kullanacağım, iPhone'da ve bilgisayarda çalışan, senkronize ve
 
 ## 5. Veri modeli
 
-**lists**
-| alan | tip |
-|------|-----|
-| id | uuid (PK) |
-| user_id | uuid (auth.users) |
-| name | text |
-| sort_order | int |
-| created_at / updated_at | timestamptz |
-| deleted_at | timestamptz, null |
+Kesin şema: [`supabase/schema.sql`](supabase/schema.sql).
 
-**tasks**
-| alan | tip |
-|------|-----|
-| id | uuid (PK) |
-| user_id | uuid |
-| list_id | uuid (lists) |
-| title | text |
-| done | boolean |
-| due_date | date, null |
-| sort_order | int |
-| created_at / updated_at | timestamptz |
-| deleted_at | timestamptz, null |
+**lists:** id, user_id, name, sort_order, created_at, updated_at, deleted_at, synced_at
 
-- Supabase'de **Row Level Security** açık olacak, kural: `user_id = auth.uid()`.
-- Yerel Dexie şeması aynı alanları kullanacak, bekleyen değişiklikler için ayrıca bir `outbox` tablosu olacak.
+**tasks:** id, user_id, list_id, title, done, due_date, sort_order, created_at, updated_at, deleted_at, synced_at
+
+- `id` metin (UUID veya `inbox`). `created_at` / `updated_at` / `deleted_at` istemcinin ürettiği ISO metinleri; `timestamptz` farklı biçimde döndüğü için metin olarak saklanıyor, böylece karşılaştırma iki tarafta da aynı. `synced_at` sunucu zamanı.
+- Supabase'de **Row Level Security** açık, kural: `user_id = auth.uid()`.
+- Yerel Dexie şeması aynı alanları kullanır (`user_id` ve `synced_at` hariç), ek olarak bekleyen değişiklik işareti `dirty`.
 
 ## 6. Kimlik doğrulama
 
-- Supabase Auth ile **e-posta magic link** (şifre yok).
+- Supabase Auth ile **e-postaya gelen tek kullanımlık kod** (şifre yok). *Uygulama sırasında değişti:* iPhone'da ana ekran uygulaması Safari'den ayrı depolama kullandığı için e-postadaki link oturumu uygulamaya taşıyamıyor; kod uygulamanın içine yazılıyor.
 - Supabase panelinden **yeni kayıtlar kapatılacak**, yani sadece benim hesabım olacak.
 - Oturum cihazda kalıcı olacak, her açılışta giriş yapmak gerekmeyecek.
 
 ## 7. MVP ekranları
 
-1. **Giriş:** e-posta ile magic link.
+1. **Giriş:** sağ üstteki senkron rozetinden; e-posta → gelen kod.
 2. **Liste seçici:** listeleri göster, ekle, yeniden adlandır, sil.
 3. **Görev listesi:** seçili listedeki görevler. Hızlı ekleme alanı, tamamla/geri al, son tarih, silme.
 4. **Bugün / Gecikmiş görünümü:** tüm listelerden bugün veya geçmiş tarihli görevler.
@@ -105,7 +94,7 @@ Sadece benim kullanacağım, iPhone'da ve bilgisayarda çalışan, senkronize ve
 - Sürükle-bırak ile sıralama (ilk sürümde basit sıralama)
 - Dışa aktarma (JSON)
 
-## 10. Uygulama adımları (kodlamaya başlandığında)
+## 10. Uygulama adımları
 
 1. Vite + React + TS projesi, `vite-plugin-pwa` ile manifest ve ikonlar
 2. Supabase projesi: tablolar, RLS, auth ayarları (kayıt kapalı)
@@ -118,6 +107,6 @@ Sadece benim kullanacağım, iPhone'da ve bilgisayarda çalışan, senkronize ve
 
 ## 11. Açık sorular
 
-- **Q11: "Kendime özel" ne demek?** Henüz cevaplanmadı. Günlük akışım, özel görünümler veya iş/ev ayrımı gibi ihtiyaçlar MVP ekranlarını değiştirebilir.
+- **Q12-Q16** cevaplanmadı; varsayılan önerilerle uygulandı. Farklıysa ilgili ekranlar değişebilir.
 - Uygulamanın adı ve görsel teması
 - Hosting sağlayıcısının kesin seçimi (Vercel / Netlify / Cloudflare Pages)
