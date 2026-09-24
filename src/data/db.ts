@@ -18,6 +18,17 @@ export class TodoDB extends Dexie {
       tasks: 'id, list_id, due_date, dirty',
       meta: 'key',
     })
+    // v2: görevlere günün bölümü (day_part) eklendi; eski görevler "gün içinde" (null) olur.
+    this.version(2)
+      .stores({})
+      .upgrade((tx) =>
+        tx
+          .table('tasks')
+          .toCollection()
+          .modify((task) => {
+            task.day_part ??= null
+          }),
+      )
   }
 }
 

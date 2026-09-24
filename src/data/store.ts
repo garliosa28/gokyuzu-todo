@@ -1,8 +1,11 @@
 import { getMeta, setMeta, type TodoDB } from './db'
 import { newId } from './id'
-import { INBOX_ID, type DateString, type List, type Local, type Task } from './types'
+import { INBOX_ID, type DateString, type DayPart, type List, type Local, type Task } from './types'
 
-export type TaskPatch = Partial<Pick<Task, 'title' | 'list_id' | 'due_date'>>
+export type TaskPatch = Partial<Pick<Task, 'title' | 'list_id' | 'due_date' | 'day_part'>>
+
+/** Bir değişikliği geri alan işlem; geri alma da normal bir değişiklik gibi senkronlanır. */
+export type Undo = () => Promise<void>
 
 export interface StoreOptions {
   now?: () => Date
@@ -28,15 +31,31 @@ export function createStore(db: TodoDB, { now = () => new Date() }: StoreOptions
     return new Date(Math.max(now().getTime(), Date.parse(previous) + 1)).toISOString()
   }
 
-  /** Satırı okuyup değiştirir; okuma ve yazma aynı transaction'da, böylece arada gelen yazma ezilmez. */
-  async function patchTask(id: string, change: (task: Task, updated_at: string) => Partial<Task>) {
-    await db.transaction('rw', db.tasks, async () => {
+  /**
+   * Satırı okuyup değiştirir; okuma ve yazma aynı transaction'da, böylece arada gelen yazma ezilmez.
+   * Değişen alanların önceki değerlerini döndürür (geri alma için); değişiklik yapılmadıysa null.
+   */
+  async function patchTask(
+    id: string,
+    change: (task: Task, updated_at: string) => Partial<Task>,
+    { includeDeleted = false } = {},
+  ): Promise<Partial<Task> | null> {
+    return db.transaction('rw', db.tasks, async () => {
       const task = await db.tasks.get(id)
       // Silinmiş göreve sonradan gelen düzenleme (ör. kapanan düzenleyicinin kaydı) yok sayılır.
-      if (!task || task.deleted_at) return
+      if (!task || (task.deleted_at && !includeDeleted)) return null
       const updated_at = nextStamp(task.updated_at)
-      await db.tasks.update(id, { ...change(task, updated_at), updated_at, dirty: 1 })
+      const patch = change(task, updated_at)
+      await db.tasks.update(id, { ...patch, updated_at, dirty: 1 })
+      return Object.fromEntries(Object.keys(patch).map((key) => [key, task[key as keyof Task]])) as Partial<Task>
     })
+  }
+
+  /** Önceki değerleri geri yazan bir Undo; silinmiş bir görevi geri getirmek de buna dahil. */
+  function undoWith(id: string, previous: Partial<Task> | null): Undo {
+    return async () => {
+      if (previous) await patchTask(id, () => previous, { includeDeleted: true })
+    }
   }
 
   async function patchList(id: string, change: (list: List, updated_at: string) => Partial<List>) {
@@ -49,7 +68,7 @@ export function createStore(db: TodoDB, { now = () => new Date() }: StoreOptions
   }
 
   return {
-    async addTask(title: string, opts: { listId?: string; dueDate?: DateString | null } = {}): Promise<Task> {
+    async addTask(title: string, opts: { listId?: string; dueDate?: DateString | null; dayPart?: DayPart | null } = {}): Promise<Task> {
       if (!title.trim()) throw new Error('Görev başlığı boş olamaz')
       const ts = stamp()
       const task: Local<Task> = {
@@ -58,6 +77,7 @@ export function createStore(db: TodoDB, { now = () => new Date() }: StoreOptions
         title: title.trim(),
         done: false,
         due_date: opts.dueDate ?? null,
+        day_part: opts.dayPart ?? null,
         sort_order: now().getTime(),
         created_at: ts,
         updated_at: ts,
@@ -72,13 +92,14 @@ export function createStore(db: TodoDB, { now = () => new Date() }: StoreOptions
       await patchTask(id, (task) => ({ done: !task.done }))
     },
 
-    async updateTask(id: string, patch: TaskPatch): Promise<void> {
+    async updateTask(id: string, patch: TaskPatch): Promise<Undo> {
       if (patch.title !== undefined && !patch.title.trim()) throw new Error('Görev başlığı boş olamaz')
-      await patchTask(id, () => (patch.title !== undefined ? { ...patch, title: patch.title.trim() } : patch))
+      const previous = await patchTask(id, () => (patch.title !== undefined ? { ...patch, title: patch.title.trim() } : patch))
+      return undoWith(id, previous)
     },
 
-    async deleteTask(id: string): Promise<void> {
-      await patchTask(id, (_task, updated_at) => ({ deleted_at: updated_at }))
+    async deleteTask(id: string): Promise<Undo> {
+      return undoWith(id, await patchTask(id, (_task, updated_at) => ({ deleted_at: updated_at })))
     },
 
     /**

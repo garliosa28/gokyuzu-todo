@@ -39,6 +39,7 @@ function taskRow(i: number, synced_at: string): ServerRow {
     title: `Görev ${i}`,
     done: false,
     due_date: null,
+    day_part: null,
     sort_order: i,
     created_at: ts,
     updated_at: ts,

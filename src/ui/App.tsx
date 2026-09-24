@@ -6,6 +6,7 @@ import { ListScreen } from './ListScreen'
 import { ListsScreen } from './ListsScreen'
 import { SyncBadge } from './SyncBadge'
 import { TodayScreen } from './TodayScreen'
+import { runUndo, usePendingUndo } from './undo'
 import { reloadToUpdate, useUpdateReady } from './updates'
 
 export type View = { kind: 'today' } | { kind: 'lists' } | { kind: 'list'; id: string } | { kind: 'account' }
@@ -15,6 +16,7 @@ export function App() {
   const updateReady = useUpdateReady()
   const [updateDismissed, setUpdateDismissed] = useState(false)
   const showUpdate = updateReady && !updateDismissed
+  const pendingUndo = usePendingUndo()
 
   useEffect(() => {
     store.ensureInbox()
@@ -24,18 +26,28 @@ export function App() {
   const tab = view.kind === 'list' && view.id === INBOX_ID ? 'inbox' : view.kind === 'list' ? 'lists' : view.kind
 
   return (
-    <div className={`app${showUpdate ? ' has-banner' : ''}`}>
-      {showUpdate && (
-        <div className="update-banner" role="status">
-          <span>Yeni sürüm hazır.</span>
-          <span className="update-actions">
-            <button className="link" onClick={() => setUpdateDismissed(true)}>
-              Sonra
-            </button>
-            <button onClick={() => reloadToUpdate()}>Yenile</button>
-          </span>
-        </div>
-      )}
+    <div className={`app${showUpdate || pendingUndo ? ' has-banner' : ''}`}>
+      <div className="bottom-stack">
+        {pendingUndo && (
+          <div className="banner" role="status">
+            <span className="banner-text">{pendingUndo.label}</span>
+            <span className="banner-actions">
+              <button onClick={() => runUndo()}>Geri al</button>
+            </span>
+          </div>
+        )}
+        {showUpdate && (
+          <div className="banner" role="status">
+            <span className="banner-text">Yeni sürüm hazır.</span>
+            <span className="banner-actions">
+              <button className="link" onClick={() => setUpdateDismissed(true)}>
+                Sonra
+              </button>
+              <button onClick={() => reloadToUpdate()}>Yenile</button>
+            </span>
+          </div>
+        )}
+      </div>
       {view.kind !== 'account' && (
         <SyncBadge
           onClick={() => {

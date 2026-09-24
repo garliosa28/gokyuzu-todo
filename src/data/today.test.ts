@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { morningReview, shouldCloseReview, todayView } from './today'
+import { byDayPart, currentDayPart, morningReview, shouldCloseReview, todayView } from './today'
 import type { Task } from './types'
 
 let n = 0
@@ -10,6 +10,7 @@ function task(title: string, fields: Partial<Task> = {}): Task {
     title,
     done: false,
     due_date: null,
+    day_part: null,
     sort_order: n,
     created_at: '2026-09-01T00:00:00Z',
     updated_at: '2026-09-01T00:00:00Z',
@@ -94,5 +95,28 @@ describe('sabah gözden geçirmesi', () => {
   it('gözden geçirilecek görev varken ya da gün zaten kapalıyken tekrar kapatmaz', () => {
     expect(shouldCloseReview(morningReview(leftovers, today, '2026-09-21'), today, '2026-09-21', today)).toBe(false)
     expect(shouldCloseReview([], today, today, today)).toBe(false)
+  })
+})
+
+describe('günün bölümleri', () => {
+  it('görevleri sabah, öğle, akşam ve "gün içinde" olarak sırasını koruyarak ayırır', () => {
+    const groups = byDayPart([
+      task('Rapor', { day_part: 'afternoon' }),
+      task('Koşu', { day_part: 'morning' }),
+      task('Süt al'),
+      task('Kitap', { day_part: 'evening' }),
+      task('Toplantı', { day_part: 'afternoon' }),
+    ])
+    expect(titles(groups.morning)).toEqual(['Koşu'])
+    expect(titles(groups.afternoon)).toEqual(['Rapor', 'Toplantı'])
+    expect(titles(groups.evening)).toEqual(['Kitap'])
+    expect(titles(groups.anytime)).toEqual(['Süt al'])
+  })
+
+  it('saate göre şu anki bölümü bilir (sabah 12.00, öğle 17.00 öncesi)', () => {
+    const at = (h: number, m = 0) => currentDayPart(new Date(2026, 8, 22, h, m))
+    expect([at(0), at(6), at(11, 59)]).toEqual(['morning', 'morning', 'morning'])
+    expect([at(12), at(16, 59)]).toEqual(['afternoon', 'afternoon'])
+    expect([at(17), at(23, 59)]).toEqual(['evening', 'evening'])
   })
 })

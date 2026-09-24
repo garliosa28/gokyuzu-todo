@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
-import type { List, Task } from '../data/types'
+import { DAY_PARTS, type List, type Task } from '../data/types'
 import { store } from './context'
-import { dueLabel } from './format'
-import { planForToday, postponeToTomorrow } from './taskActions'
+import { DAY_PART_LABELS, dueLabel } from './format'
+import { deleteWithUndo, planForToday, postponeToTomorrow } from './taskActions'
 
 interface Props {
   task: Task
@@ -10,9 +10,11 @@ interface Props {
   /** Ekranın bir kez sorguladığı listeler (her satır ayrıca sorgulamasın diye). */
   lists: List[]
   showList?: boolean
+  /** Bugün ekranı görevleri zaten bölüm başlıkları altında gösterir; orada tekrar yazılmaz. */
+  showDayPart?: boolean
 }
 
-export function TaskItem({ task, today, lists, showList = false }: Props) {
+export function TaskItem({ task, today, lists, showList = false, showDayPart = true }: Props) {
   const [editing, setEditing] = useState(false)
   const listName = lists.find((l) => l.id === task.list_id)?.name
   const overdue = !task.done && task.due_date !== null && task.due_date < today
@@ -20,6 +22,7 @@ export function TaskItem({ task, today, lists, showList = false }: Props) {
   const meta = [
     task.due_date && task.due_date !== today ? dueLabel(task.due_date, today) : null,
     showList ? listName : null,
+    showDayPart && task.day_part ? DAY_PART_LABELS[task.day_part] : null,
   ].filter(Boolean)
 
   return (
@@ -77,8 +80,8 @@ function TaskEditor({ task, today, lists }: { task: Task; today: string; lists: 
         <input name="title" value={title} aria-label="Başlık" enterKeyHint="done" onChange={(e) => setTitle(e.target.value)} onBlur={saveTitle} />
       </form>
       <div className="chips">
-        <button onClick={() => planForToday(task.id, today)}>Bugün</button>
-        <button onClick={() => postponeToTomorrow(task.id, today)}>Yarın</button>
+        <button onClick={() => planForToday(task, today)}>Bugün</button>
+        <button onClick={() => postponeToTomorrow(task, today)}>Yarın</button>
         <input
           type="date"
           aria-label="Son tarih"
@@ -86,6 +89,19 @@ function TaskEditor({ task, today, lists }: { task: Task; today: string; lists: 
           onChange={(e) => store.updateTask(task.id, { due_date: e.target.value || null })}
         />
         {task.due_date && <button onClick={() => store.updateTask(task.id, { due_date: null })}>Tarihi kaldır</button>}
+      </div>
+      <div className="chips" role="group" aria-label="Günün bölümü">
+        {DAY_PARTS.map((part) => (
+          <button
+            key={part}
+            aria-pressed={task.day_part === part}
+            className={task.day_part === part ? 'selected' : ''}
+            // Seçili bölüme tekrar dokunmak seçimi kaldırır ("gün içinde").
+            onClick={() => store.updateTask(task.id, { day_part: task.day_part === part ? null : part })}
+          >
+            {DAY_PART_LABELS[part]}
+          </button>
+        ))}
       </div>
       <div className="editor-row">
         <select aria-label="Liste" value={task.list_id} onChange={(e) => store.updateTask(task.id, { list_id: e.target.value })}>
@@ -96,7 +112,7 @@ function TaskEditor({ task, today, lists }: { task: Task; today: string; lists: 
             </option>
           ))}
         </select>
-        <button className="danger" onClick={() => store.deleteTask(task.id)}>
+        <button className="danger" onClick={() => deleteWithUndo(task)}>
           Sil
         </button>
       </div>

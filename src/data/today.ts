@@ -1,4 +1,4 @@
-import type { DateString, Task } from './types'
+import type { DateString, DayPart, Task } from './types'
 
 /** Cihazın yerel saatine göre 'YYYY-MM-DD'. */
 export function toDateString(date: Date): DateString {
@@ -51,4 +51,17 @@ export function shouldCloseReview(
   shownOn: DateString | null,
 ): boolean {
   return reviewedOn !== today && shownOn === today && review.length === 0
+}
+
+/** Görevleri günün bölümlerine ayırır; sıra korunur. anytime = bölümü olmayanlar ("gün içinde"). */
+export function byDayPart(tasks: Task[]): Record<DayPart | 'anytime', Task[]> {
+  const groups: Record<DayPart | 'anytime', Task[]> = { morning: [], afternoon: [], evening: [], anytime: [] }
+  for (const t of tasks) groups[t.day_part ?? 'anytime'].push(t)
+  return groups
+}
+
+/** Cihazın yerel saatine göre şu anki bölüm: 12.00 öncesi sabah, 17.00 öncesi öğle, sonrası akşam. */
+export function currentDayPart(date: Date): DayPart {
+  const h = date.getHours()
+  return h < 12 ? 'morning' : h < 17 ? 'afternoon' : 'evening'
 }

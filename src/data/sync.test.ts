@@ -78,6 +78,33 @@ describe('senkronizasyon', () => {
     expect(await titles(laptop)).toEqual(['Süt al'])
   })
 
+  it('günün bölümü de diğer cihaza geçer', async () => {
+    const phone = device()
+    const laptop = device()
+    const task = await phone.store.addTask('Koşu', { dayPart: 'morning' })
+    await phone.sync()
+    await laptop.sync()
+    await laptop.store.updateTask(task.id, { day_part: 'evening' })
+    await laptop.sync()
+    await phone.sync()
+    expect((await phone.store.allTasks())[0].day_part).toBe('evening')
+  })
+
+  it('geri alınan silme diğer cihazda da görevi geri getirir', async () => {
+    const phone = device()
+    const laptop = device()
+    const task = await phone.store.addTask('Süt al')
+    const undo = await phone.store.deleteTask(task.id)
+    await phone.sync()
+    await laptop.sync()
+    expect(await titles(laptop)).toEqual([])
+
+    await undo()
+    await phone.sync()
+    await laptop.sync()
+    expect(await titles(laptop)).toEqual(['Süt al'])
+  })
+
   it('listeler ve silmeler de diğer cihaza geçer', async () => {
     const phone = device()
     const laptop = device()

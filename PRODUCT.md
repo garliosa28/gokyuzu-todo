@@ -54,7 +54,7 @@ Genel amaçlı bir todo ürünü değil, tek bir kişinin gününe göre biçiml
 - vite-plugin-pwa
 - Service worker ve kurulum HTTPS gerektiriyor
 
-**Açık ihtiyaç:** Kullanıcının günü hem bağlamla (iş, ev, alışveriş…) hem zaman dilimiyle (sabah, öğlen, akşam) şekilleniyor. Uygulamada şu an yalnızca bağlam listeleri var. Zaman dilimi ayrımının nasıl yer alacağı henüz kararlaştırılmadı.
+**Günün düzeni:** Kullanıcının günü hem bağlamla (iş, ev, alışveriş…) hem zaman dilimiyle (sabah, öğlen, akşam) şekilleniyor. Bağlam listeleri mevcut. Görevlere isteğe bağlı bir "günün bölümü" (sabah / öğlen / akşam) alanı eklendi (2026-09-24); Bugün ekranı görevleri bu bölümlere göre gruplar. Bkz. [briefs/gokyuzu-hareket.md](briefs/gokyuzu-hareket.md).
 
 **Kapsam dışı (şimdilik):**
 - Öncelik, etiket, not, alt görev

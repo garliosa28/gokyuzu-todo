@@ -151,15 +151,27 @@ button { cursor: pointer; -webkit-tap-highlight-color: transparent; }
 /* Yalnızca "monospace" yazılırsa tarayıcı 13px temel boyuta düşer; başka bir yazı tipi adı bunu engeller. */
 code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: .9em; }
 
-/* Yeni sürüm bandı */
-.update-banner {
+/* Alt bantlar: Geri al ve yeni sürüm; sekme çubuğunun üstünde tek bir yığın */
+.bottom-stack {
   position: fixed; z-index: 2; left: 16px; right: 16px; bottom: calc(60px + env(safe-area-inset-bottom));
   max-width: 608px; margin: 0 auto;
-  display: flex; align-items: center; justify-content: space-between; gap: 8px;
-  padding: 8px 12px; border-radius: 10px; border: 1px solid var(--line);
-  background: var(--warn-bg); font-size: 14px;
+  display: flex; flex-direction: column; gap: 8px;
+  pointer-events: none;
 }
-.update-actions { display: flex; align-items: center; gap: 12px; }
-.update-banner button:not(.link) { border: none; background: var(--accent); color: var(--bg); border-radius: 8px; padding: 6px 12px; }
+.banner {
+  pointer-events: auto;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 8px 8px 8px 14px; border-radius: 12px; border: 1px solid var(--line);
+  background: var(--surface); box-shadow: 0 6px 20px rgb(0 0 0 / .18);
+  font-size: 14px;
+}
+.banner-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.banner-actions { flex: none; display: flex; align-items: center; gap: 12px; }
+.banner-actions button:not(.link) { border: none; background: var(--accent); color: var(--bg); border-radius: 8px; padding: 6px 12px; }
 /* Bant açıkken içeriğin sonu bandın altında kalmasın */
 .app.has-banner { padding-bottom: calc(120px + env(safe-area-inset-bottom)); }
+
+/* Günün bölümleri */
+.section-title.now { color: var(--text); }
+.now-mark { text-transform: none; letter-spacing: 0; font-weight: 400; color: var(--muted); }
+.chips button.selected { background: var(--accent); border-color: var(--accent); color: var(--bg); }

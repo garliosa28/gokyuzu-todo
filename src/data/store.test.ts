@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import Dexie from 'dexie'
 import { TodoDB } from './db'
 import { createStore, type Store } from './store'
 import { pendingCount } from './sync'
@@ -164,5 +165,60 @@ describe('silinmiş görev', () => {
 
     expect(await pendingCount(db)).toBe(0)
     expect(await local.allTasks()).toEqual([])
+  })
+})
+
+describe('günün bölümü', () => {
+  it('görev bir bölümle eklenebilir, bölümü değiştirilip kaldırılabilir', async () => {
+    const task = await store.addTask('Koşu', { dueDate: '2026-09-22', dayPart: 'morning' })
+    expect((await store.allTasks())[0].day_part).toBe('morning')
+    await store.updateTask(task.id, { day_part: 'evening' })
+    expect((await store.allTasks())[0].day_part).toBe('evening')
+    await store.updateTask(task.id, { day_part: null })
+    expect((await store.allTasks())[0].day_part).toBeNull()
+  })
+
+  it('bölüm verilmeyen görev "gün içinde" sayılır', async () => {
+    await store.addTask('Süt al')
+    expect((await store.allTasks())[0].day_part).toBeNull()
+  })
+
+  it('alan eklenmeden önce kaydedilmiş görevler de bölümsüz okunur', async () => {
+    const name = `eski-${n++}`
+    const old = new Dexie(name)
+    old.version(1).stores({ lists: 'id, dirty', tasks: 'id, list_id, due_date, dirty', meta: 'key' })
+    await old.table('tasks').add({
+      id: 't1', list_id: 'inbox', title: 'Eski görev', done: false, due_date: null, sort_order: 1,
+      created_at: '2026-09-01T00:00:00.000Z', updated_at: '2026-09-01T00:00:00.000Z', deleted_at: null, dirty: 0,
+    })
+    old.close()
+    const upgraded = createStore(new TodoDB(name))
+    expect((await upgraded.allTasks())[0].day_part).toBeNull()
+  })
+})
+
+describe('geri al', () => {
+  it('silinen görev geri alınabilir', async () => {
+    const task = await store.addTask('Süt al')
+    const undo = await store.deleteTask(task.id)
+    expect(await store.allTasks()).toEqual([])
+    await undo()
+    expect((await store.allTasks()).map((t) => t.title)).toEqual(['Süt al'])
+  })
+
+  it('ertelenen görev geri alınınca eski tarihine döner', async () => {
+    const task = await store.addTask('Fatura', { dueDate: '2026-09-21' })
+    const undo = await store.updateTask(task.id, { due_date: '2026-09-23' })
+    await undo()
+    expect((await store.allTasks())[0].due_date).toBe('2026-09-21')
+  })
+
+  it('geri alma yalnızca kendi değiştirdiği alanı geri koyar', async () => {
+    const task = await store.addTask('Fatura', { dueDate: '2026-09-21' })
+    const undo = await store.updateTask(task.id, { due_date: '2026-09-23' })
+    await store.updateTask(task.id, { title: 'Faturayı öde' })
+    await undo()
+    const [saved] = await store.allTasks()
+    expect([saved.title, saved.due_date]).toEqual(['Faturayı öde', '2026-09-21'])
   })
 })

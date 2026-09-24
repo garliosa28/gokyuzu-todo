@@ -31,6 +31,7 @@ create table if not exists public.tasks (
   title       text not null,
   done        boolean not null default false,
   due_date    date,
+  day_part    text check (day_part in ('morning', 'afternoon', 'evening')),
   sort_order  bigint not null,
   created_at  text not null,
   updated_at  text not null,
@@ -38,6 +39,10 @@ create table if not exists public.tasks (
   synced_at   timestamptz not null default clock_timestamp(),
   primary key (user_id, id)
 );
+
+-- Şema daha önce kurulduysa sonradan eklenen sütunlar
+alter table public.tasks add column if not exists day_part text
+  check (day_part in ('morning', 'afternoon', 'evening'));
 
 -- Senkron sayfalaması (synced_at, id) sırasıyla okur.
 create index if not exists lists_user_synced on public.lists (user_id, synced_at, id);
