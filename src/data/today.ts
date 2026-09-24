@@ -8,9 +8,16 @@ export function toDateString(date: Date): DateString {
   return `${y}-${m}-${d}`
 }
 
-export function addDays(day: DateString, days: number): DateString {
+/** 'YYYY-MM-DD' → o günün yerel gece yarısı. */
+export function parseDateString(day: DateString): Date {
   const [y, m, d] = day.split('-').map(Number)
-  return toDateString(new Date(y, m - 1, d + days))
+  return new Date(y, m - 1, d)
+}
+
+export function addDays(day: DateString, days: number): DateString {
+  const date = parseDateString(day)
+  date.setDate(date.getDate() + days)
+  return toDateString(date)
 }
 
 const byDueThenOrder = (a: Task, b: Task) =>
@@ -30,4 +37,18 @@ export function todayView(tasks: Task[], today: DateString): { overdue: Task[]; 
 export function morningReview(tasks: Task[], today: DateString, reviewedOn: DateString | null): Task[] {
   if (reviewedOn === today) return []
   return todayView(tasks, today).overdue
+}
+
+/**
+ * Kart bugün gösterildiyse ve içindekilerin hepsi halledildiyse gün kapanır: aynı gün sonradan
+ * gecikmiş bir görev gelse de kart bir daha açılmaz. Kart hiç gösterilmediyse (açılışta kalan yoktu)
+ * gün açık kalır; senkronla sonradan gelen kalanlar yine kartta sorulur.
+ */
+export function shouldCloseReview(
+  review: Task[],
+  today: DateString,
+  reviewedOn: DateString | null,
+  shownOn: DateString | null,
+): boolean {
+  return reviewedOn !== today && shownOn === today && review.length === 0
 }

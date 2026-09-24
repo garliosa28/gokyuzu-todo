@@ -1,6 +1,7 @@
-import { beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { TodoDB } from './db'
 import { createStore, type Store } from './store'
+import { pendingCount } from './sync'
 import { INBOX_ID } from './types'
 
 let n = 0
@@ -32,6 +33,21 @@ describe('görevler', () => {
     await store.addTask('Ekmek al')
     await store.deleteTask(a.id)
     expect((await store.tasksInList(INBOX_ID)).map((t) => t.title)).toEqual(['Ekmek al'])
+  })
+
+  describe('güvenli olmayan bağlantıda (http://192.168…, crypto.randomUUID yok)', () => {
+    afterEach(() => vi.unstubAllGlobals())
+
+    it('görev ve liste yine eklenebilir, kimlikler benzersiz UUID olur', async () => {
+      const { getRandomValues } = globalThis.crypto
+      vi.stubGlobal('crypto', { getRandomValues: getRandomValues.bind(globalThis.crypto) })
+      const a = await store.addTask('Süt al')
+      const b = await store.addTask('Ekmek al')
+      const list = await store.addList('İş')
+      const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/
+      expect([a.id, b.id, list.id].every((id) => uuid.test(id))).toBe(true)
+      expect(new Set([a.id, b.id, list.id]).size).toBe(3)
+    })
   })
 
   it('boş başlıklı görev eklenmez', async () => {
@@ -72,6 +88,15 @@ describe('listeler', () => {
     expect(await store.tasksInList(work.id)).toEqual([])
   })
 
+  it('silinmiş bir listeye sonradan gelen görev de görünmez', async () => {
+    const work = await store.addList('İş')
+    await store.deleteList(work.id)
+    // ör. başka bir cihazdan senkronla gelen, silinen listeye ait görev
+    await store.addTask('Rapor yaz', { listId: work.id })
+    expect(await store.allTasks()).toEqual([])
+    expect(await store.tasksInList(work.id)).toEqual([])
+  })
+
   it('gelen kutusu silinemez', async () => {
     await store.ensureInbox()
     await expect(store.deleteList(INBOX_ID)).rejects.toThrow()
@@ -95,5 +120,49 @@ describe('sabah gözden geçirmesi', () => {
     expect(await store.reviewedOn()).toBeNull()
     await store.markReviewed('2026-09-22')
     expect(await store.reviewedOn()).toBe('2026-09-22')
+  })
+
+  it('kartın gösterildiği gün kalıcı olarak hatırlanır', async () => {
+    expect(await store.reviewShownOn()).toBeNull()
+    await store.markReviewShown('2026-09-22')
+    expect(await store.reviewShownOn()).toBe('2026-09-22')
+  })
+})
+
+describe('zaman damgaları', () => {
+  it('cihaz saati geri gitse bile bir satırın her değişikliği öncekinden daha yeni damga alır', async () => {
+    let t = Date.parse('2026-09-22T12:00:00.000Z')
+    const skewed = createStore(new TodoDB(`test-${n++}`), { now: () => new Date((t -= 60_000)) }) // her okumada 1 dk geri
+    const stamps: string[] = []
+    const stampOf = async () => stamps.push((await skewed.allTasks())[0].updated_at)
+
+    const task = await skewed.addTask('Süt al')
+    await stampOf()
+    await skewed.updateTask(task.id, { title: 'Yarım litre süt al' })
+    await stampOf()
+    await skewed.toggleTask(task.id)
+    await stampOf()
+    await skewed.updateTask(task.id, { due_date: '2026-09-23' })
+    await stampOf()
+
+    expect(stamps.every((s, i) => i === 0 || s > stamps[i - 1])).toBe(true)
+    const [saved] = await skewed.allTasks()
+    expect([saved.title, saved.done, saved.due_date]).toEqual(['Yarım litre süt al', true, '2026-09-23'])
+  })
+})
+
+describe('silinmiş görev', () => {
+  it('silindikten sonra gelen düzenleme (ör. kapanan düzenleyicinin kaydı) gönderilecek bir değişiklik üretmez', async () => {
+    const db = new TodoDB(`test-${n++}`)
+    const local = createStore(db)
+    const task = await local.addTask('Süt al')
+    await local.deleteTask(task.id)
+    await db.tasks.update(task.id, { dirty: 0 }) // silme gönderildi
+
+    await local.updateTask(task.id, { title: 'Yarım litre süt al' })
+    await local.toggleTask(task.id)
+
+    expect(await pendingCount(db)).toBe(0)
+    expect(await local.allTasks()).toEqual([])
   })
 })

@@ -6,21 +6,26 @@
 --   aynı sıralamayı kullansın; timestamptz farklı biçimde geri döner.
 -- * synced_at sunucu zamanıdır; cihazlar "şu andan sonra değişenleri ver" diye
 --   bunu imleç olarak kullanır.
--- * Son yazan kazanır: daha eski updated_at ile gelen güncelleme yok sayılır.
+-- * Son yazan kazanır: daha eski updated_at ile gelen güncelleme yok sayılır (eşit olan kabul edilir;
+--   istemci de eşitlikte sunucunun sürümünü alır).
+-- * Birincil anahtar (user_id, id): her kullanıcının kendi "inbox" satırı olur ve aynı cihazda
+--   başka bir hesaba geçmek çakışma yaratmaz. user_id istemciden gönderilmez, auth.uid() ile dolar.
+-- * Bir liste silindiğinde görevleri tek tek silinmez; istemci, listesi silinmiş görevleri okurken gizler.
 
 create table if not exists public.lists (
-  id          text primary key,
+  id          text not null,
   user_id     uuid not null default auth.uid() references auth.users on delete cascade,
   name        text not null,
   sort_order  bigint not null,
   created_at  text not null,
   updated_at  text not null,
   deleted_at  text,
-  synced_at   timestamptz not null default clock_timestamp()
+  synced_at   timestamptz not null default clock_timestamp(),
+  primary key (user_id, id)
 );
 
 create table if not exists public.tasks (
-  id          text primary key,
+  id          text not null,
   user_id     uuid not null default auth.uid() references auth.users on delete cascade,
   list_id     text not null,
   title       text not null,
@@ -30,11 +35,13 @@ create table if not exists public.tasks (
   created_at  text not null,
   updated_at  text not null,
   deleted_at  text,
-  synced_at   timestamptz not null default clock_timestamp()
+  synced_at   timestamptz not null default clock_timestamp(),
+  primary key (user_id, id)
 );
 
-create index if not exists lists_user_synced on public.lists (user_id, synced_at);
-create index if not exists tasks_user_synced on public.tasks (user_id, synced_at);
+-- Senkron sayfalaması (synced_at, id) sırasıyla okur.
+create index if not exists lists_user_synced on public.lists (user_id, synced_at, id);
+create index if not exists tasks_user_synced on public.tasks (user_id, synced_at, id);
 
 -- Son yazan kazanır + senkron imlecini güncelle
 create or replace function public.lww_guard() returns trigger

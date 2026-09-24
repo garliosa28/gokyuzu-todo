@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { morningReview, todayView } from './today'
+import { morningReview, shouldCloseReview, todayView } from './today'
 import type { Task } from './types'
 
 let n = 0
@@ -77,5 +77,22 @@ describe('sabah gözden geçirmesi', () => {
 
   it('bugün zaten gözden geçirildiyse bir daha sormaz', () => {
     expect(morningReview(leftovers, today, today)).toEqual([])
+  })
+
+  it('kart bugün gösterildi ve içindekiler tek tek halledildiyse gün kapanır', () => {
+    const handled: Task[] = [] // hepsi Bugün/Ertele/Sil ile halledildi
+    expect(shouldCloseReview(morningReview(handled, today, '2026-09-21'), today, '2026-09-21', today)).toBe(true)
+  })
+
+  it('ilk açılışta gözden geçirilecek bir şey yoksa gün kapanmaz; sonradan senkronla gelen kalanlar kartta görünür', () => {
+    // Açılışta yerelde gecikmiş görev yok, kart hiç gösterilmedi
+    expect(shouldCloseReview(morningReview([], today, '2026-09-21'), today, '2026-09-21', '2026-09-21')).toBe(false)
+    // Sonra senkronla dünden kalan bir görev gelir: kart açılır
+    expect(titles(morningReview(leftovers, today, '2026-09-21'))).toEqual(['Dün kalan'])
+  })
+
+  it('gözden geçirilecek görev varken ya da gün zaten kapalıyken tekrar kapatmaz', () => {
+    expect(shouldCloseReview(morningReview(leftovers, today, '2026-09-21'), today, '2026-09-21', today)).toBe(false)
+    expect(shouldCloseReview([], today, today, today)).toBe(false)
   })
 })

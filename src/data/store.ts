@@ -1,4 +1,5 @@
 import { getMeta, setMeta, type TodoDB } from './db'
+import { newId } from './id'
 import { INBOX_ID, type DateString, type List, type Local, type Task } from './types'
 
 export type TaskPatch = Partial<Pick<Task, 'title' | 'list_id' | 'due_date'>>
@@ -10,8 +11,41 @@ export interface StoreOptions {
 export function createStore(db: TodoDB, { now = () => new Date() }: StoreOptions = {}) {
   const stamp = () => now().toISOString()
 
-  async function patchTask(id: string, patch: Partial<Task>) {
-    await db.tasks.update(id, { ...patch, updated_at: stamp(), dirty: 1 })
+  /**
+   * Görünür görevler: silinmemiş ve listesi silinmemiş olanlar. Liste silme yazma anında görevlere
+   * kaskad edilmez; böylece senkronla sonradan gelen görevler de listeyle birlikte gizli kalır.
+   */
+  async function visible(rows: Local<Task>[]): Promise<Task[]> {
+    const deletedLists = new Set((await db.lists.toArray()).filter((l) => l.deleted_at).map((l) => l.id))
+    return rows.filter((t) => !t.deleted_at && !deletedLists.has(t.list_id))
+  }
+
+  /**
+   * Mevcut bir satırın yeni updated_at'i: şimdi, ama her zaman öncekinden en az 1 ms sonra.
+   * Cihaz saati geride olsa bile yapılan son değişiklik "son yazan kazanır"da kazanır.
+   */
+  function nextStamp(previous: string): string {
+    return new Date(Math.max(now().getTime(), Date.parse(previous) + 1)).toISOString()
+  }
+
+  /** Satırı okuyup değiştirir; okuma ve yazma aynı transaction'da, böylece arada gelen yazma ezilmez. */
+  async function patchTask(id: string, change: (task: Task, updated_at: string) => Partial<Task>) {
+    await db.transaction('rw', db.tasks, async () => {
+      const task = await db.tasks.get(id)
+      // Silinmiş göreve sonradan gelen düzenleme (ör. kapanan düzenleyicinin kaydı) yok sayılır.
+      if (!task || task.deleted_at) return
+      const updated_at = nextStamp(task.updated_at)
+      await db.tasks.update(id, { ...change(task, updated_at), updated_at, dirty: 1 })
+    })
+  }
+
+  async function patchList(id: string, change: (list: List, updated_at: string) => Partial<List>) {
+    await db.transaction('rw', db.lists, async () => {
+      const list = await db.lists.get(id)
+      if (!list || list.deleted_at) return
+      const updated_at = nextStamp(list.updated_at)
+      await db.lists.update(id, { ...change(list, updated_at), updated_at, dirty: 1 })
+    })
   }
 
   return {
@@ -19,7 +53,7 @@ export function createStore(db: TodoDB, { now = () => new Date() }: StoreOptions
       if (!title.trim()) throw new Error('Görev başlığı boş olamaz')
       const ts = stamp()
       const task: Local<Task> = {
-        id: crypto.randomUUID(),
+        id: newId(),
         list_id: opts.listId ?? INBOX_ID,
         title: title.trim(),
         done: false,
@@ -35,17 +69,16 @@ export function createStore(db: TodoDB, { now = () => new Date() }: StoreOptions
     },
 
     async toggleTask(id: string): Promise<void> {
-      const task = await db.tasks.get(id)
-      if (task) await patchTask(id, { done: !task.done })
+      await patchTask(id, (task) => ({ done: !task.done }))
     },
 
     async updateTask(id: string, patch: TaskPatch): Promise<void> {
       if (patch.title !== undefined && !patch.title.trim()) throw new Error('Görev başlığı boş olamaz')
-      await patchTask(id, patch.title !== undefined ? { ...patch, title: patch.title.trim() } : patch)
+      await patchTask(id, () => (patch.title !== undefined ? { ...patch, title: patch.title.trim() } : patch))
     },
 
     async deleteTask(id: string): Promise<void> {
-      await patchTask(id, { deleted_at: stamp() })
+      await patchTask(id, (_task, updated_at) => ({ deleted_at: updated_at }))
     },
 
     /**
@@ -72,7 +105,7 @@ export function createStore(db: TodoDB, { now = () => new Date() }: StoreOptions
       if (!name.trim()) throw new Error('Liste adı boş olamaz')
       const ts = stamp()
       const list: Local<List> = {
-        id: crypto.randomUUID(),
+        id: newId(),
         name: name.trim(),
         sort_order: now().getTime(),
         created_at: ts,
@@ -86,20 +119,12 @@ export function createStore(db: TodoDB, { now = () => new Date() }: StoreOptions
 
     async renameList(id: string, name: string): Promise<void> {
       if (!name.trim()) throw new Error('Liste adı boş olamaz')
-      await db.lists.update(id, { name: name.trim(), updated_at: stamp(), dirty: 1 })
+      await patchList(id, () => ({ name: name.trim() }))
     },
 
     async deleteList(id: string): Promise<void> {
       if (id === INBOX_ID) throw new Error('Gelen kutusu silinemez')
-      const ts = stamp()
-      await db.transaction('rw', db.lists, db.tasks, async () => {
-        await db.lists.update(id, { deleted_at: ts, updated_at: ts, dirty: 1 })
-        await db.tasks
-          .where('list_id')
-          .equals(id)
-          .filter((t) => !t.deleted_at)
-          .modify({ deleted_at: ts, updated_at: ts, dirty: 1 })
-      })
+      await patchList(id, (_list, updated_at) => ({ deleted_at: updated_at }))
     },
 
     async lists(): Promise<List[]> {
@@ -115,13 +140,22 @@ export function createStore(db: TodoDB, { now = () => new Date() }: StoreOptions
       return setMeta(db, 'reviewedOn', day)
     },
 
+    /** Sabah kartının en son gösterildiği gün. */
+    reviewShownOn(): Promise<DateString | null> {
+      return getMeta(db, 'reviewShownOn')
+    },
+
+    markReviewShown(day: DateString): Promise<void> {
+      return setMeta(db, 'reviewShownOn', day)
+    },
+
     async allTasks(): Promise<Task[]> {
-      return (await db.tasks.toArray()).filter((t) => !t.deleted_at)
+      return visible(await db.tasks.toArray())
     },
 
     async tasksInList(listId: string): Promise<Task[]> {
-      const rows = await db.tasks.where('list_id').equals(listId).toArray()
-      return rows.filter((t) => !t.deleted_at).sort((a, b) => a.sort_order - b.sort_order)
+      const rows = await visible(await db.tasks.where('list_id').equals(listId).toArray())
+      return rows.sort((a, b) => a.sort_order - b.sort_order)
     },
   }
 }

@@ -6,11 +6,15 @@ import { ListScreen } from './ListScreen'
 import { ListsScreen } from './ListsScreen'
 import { SyncBadge } from './SyncBadge'
 import { TodayScreen } from './TodayScreen'
+import { reloadToUpdate, useUpdateReady } from './updates'
 
 export type View = { kind: 'today' } | { kind: 'lists' } | { kind: 'list'; id: string } | { kind: 'account' }
 
 export function App() {
   const [view, setView] = useState<View>({ kind: 'today' })
+  const updateReady = useUpdateReady()
+  const [updateDismissed, setUpdateDismissed] = useState(false)
+  const showUpdate = updateReady && !updateDismissed
 
   useEffect(() => {
     store.ensureInbox()
@@ -20,7 +24,18 @@ export function App() {
   const tab = view.kind === 'list' && view.id === INBOX_ID ? 'inbox' : view.kind === 'list' ? 'lists' : view.kind
 
   return (
-    <div className="app">
+    <div className={`app${showUpdate ? ' has-banner' : ''}`}>
+      {showUpdate && (
+        <div className="update-banner" role="status">
+          <span>Yeni sürüm hazır.</span>
+          <span className="update-actions">
+            <button className="link" onClick={() => setUpdateDismissed(true)}>
+              Sonra
+            </button>
+            <button onClick={() => reloadToUpdate()}>Yenile</button>
+          </span>
+        </div>
+      )}
       {view.kind !== 'account' && (
         <SyncBadge
           onClick={() => {

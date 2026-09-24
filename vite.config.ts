@@ -6,7 +6,8 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      registerType: 'autoUpdate',
+      // Güncelleme kullanıcıya sorulur (bkz. src/ui/updates.ts); otomatik yenileme yazılan metni kaybettirebilir.
+      registerType: 'prompt',
       includeAssets: ['apple-touch-icon.png'],
       manifest: {
         name: 'Todo',

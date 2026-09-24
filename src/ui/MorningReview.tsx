@@ -1,7 +1,7 @@
-import { addDays } from '../data/today'
 import type { Task } from '../data/types'
 import { store } from './context'
 import { dueLabel } from './format'
+import { planForToday, postponeToTomorrow } from './taskActions'
 
 export function MorningReview({ tasks, today }: { tasks: Task[]; today: string }) {
   return (
@@ -20,8 +20,8 @@ export function MorningReview({ tasks, today }: { tasks: Task[]; today: string }
               <span className="meta"> · {dueLabel(t.due_date!, today)}</span>
             </span>
             <span className="review-actions">
-              <button onClick={() => store.updateTask(t.id, { due_date: today })}>Bugün</button>
-              <button onClick={() => store.updateTask(t.id, { due_date: addDays(today, 1) })}>Ertele</button>
+              <button onClick={() => planForToday(t.id, today)}>Bugün</button>
+              <button onClick={() => postponeToTomorrow(t.id, today)}>Ertele</button>
               <button aria-label={`${t.title} görevini sil`} onClick={() => store.deleteTask(t.id)}>
                 Sil
               </button>

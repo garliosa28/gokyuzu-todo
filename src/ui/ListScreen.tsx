@@ -8,6 +8,7 @@ export function ListScreen({ listId, onBack }: { listId: string; onBack?: () => 
   const today = useToday()
   const list = useLiveQuery(() => db.lists.get(listId), [listId])
   const tasks = useLiveQuery(() => store.tasksInList(listId), [listId])
+  const lists = useLiveQuery(() => store.lists(), []) ?? []
   const open = tasks?.filter((t) => !t.done) ?? []
   const done = tasks?.filter((t) => t.done) ?? []
 
@@ -22,15 +23,19 @@ export function ListScreen({ listId, onBack }: { listId: string; onBack?: () => 
         <h1>{list?.name ?? ''}</h1>
       </header>
       <main className="content">
-        <QuickAdd onAdd={(title) => store.addTask(title, { listId })} />
+        {list?.deleted_at ? (
+          <p className="empty">Bu liste başka bir cihazda silindi.</p>
+        ) : (
+          <QuickAdd onAdd={(title) => store.addTask(title, { listId })} />
+        )}
         <ul className="tasks">
-          {open.map((t) => <TaskItem key={t.id} task={t} today={today} />)}
+          {open.map((t) => <TaskItem key={t.id} task={t} today={today} lists={lists} />)}
         </ul>
         {done.length > 0 && (
           <>
             <h2 className="section-title">Tamamlanan</h2>
             <ul className="tasks">
-              {done.map((t) => <TaskItem key={t.id} task={t} today={today} />)}
+              {done.map((t) => <TaskItem key={t.id} task={t} today={today} lists={lists} />)}
             </ul>
           </>
         )}

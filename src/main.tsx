@@ -1,11 +1,11 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { registerSW } from 'virtual:pwa-register'
 import { App } from './ui/App'
 import { startSync } from './ui/syncController'
+import { startUpdates } from './ui/updates'
 import './ui/styles.css'
 
-registerSW({ immediate: true })
+startUpdates()
 startSync()
 
 createRoot(document.getElementById('root')!).render(

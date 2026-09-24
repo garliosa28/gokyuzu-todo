@@ -1,9 +1,9 @@
 import { liveQuery } from 'dexie'
 import { useSyncExternalStore } from 'react'
 import { createSupabaseRemote } from '../data/remote'
-import { syncOnce } from '../data/sync'
+import { pendingCount, syncOnce } from '../data/sync'
 import { db } from './context'
-import { supabase } from './supabase'
+import { supabase, supabaseUrl } from './supabase'
 
 export type SyncStatus = 'disabled' | 'signed-out' | 'offline' | 'syncing' | 'synced' | 'error'
 
@@ -25,37 +25,48 @@ let state: SyncState = {
   lastSyncedAt: null,
   error: null,
 }
+/** Oturumdaki kullanıcı; yerel senkron durumu bu kullanıcıya ve projeye bağlanır. */
+let userId: string | null = null
 const listeners = new Set<() => void>()
 
-function set(patch: Partial<SyncState>) {
+function setState(patch: Partial<SyncState>) {
   state = { ...state, ...patch }
   listeners.forEach((l) => l())
 }
 
 let running = false
-let again = false
-let debounce: ReturnType<typeof setTimeout> | undefined
+let rerunRequested = false
+let debounceTimer: ReturnType<typeof setTimeout> | undefined
 
 /** Senkronu başlatır; zaten çalışıyorsa bittiğinde bir tur daha çalıştırır. */
 export async function requestSync(): Promise<void> {
-  if (!supabase || !state.email) return
-  if (!navigator.onLine) return set({ status: 'offline' })
+  if (!remote || !userId) return
+  if (!navigator.onLine) return setState({ status: 'offline' })
   if (running) {
-    again = true
+    rerunRequested = true
     return
   }
+  const startedFor = userId
   running = true
-  set({ status: 'syncing' })
   try {
     do {
-      again = false
-      await syncOnce(db, remote!)
-    } while (again)
-    set({ status: 'synced', lastSyncedAt: new Date(), error: null })
+      rerunRequested = false
+      setState({ status: 'syncing' })
+      await syncOnce(db, remote, `${supabaseUrl}|${startedFor}`)
+    } while (rerunRequested && userId === startedFor)
+    // Bu arada çıkış yapıldıysa ya da bağlantı gittiyse o durum geçerli kalır.
+    if (userId !== startedFor) return
+    setState(navigator.onLine ? { status: 'synced', lastSyncedAt: new Date(), error: null } : { status: 'offline' })
   } catch (e) {
-    set({ status: navigator.onLine ? 'error' : 'offline', error: e instanceof Error ? e.message : String(e) })
+    if (userId !== startedFor) return
+    setState({ status: navigator.onLine ? 'error' : 'offline', error: e instanceof Error ? e.message : String(e) })
   } finally {
     running = false
+    // Senkron sürerken başka bir hesaba geçildiyse onun için gelen istek burada çalışır.
+    if (rerunRequested) {
+      rerunRequested = false
+      void requestSync()
+    }
   }
 }
 
@@ -63,28 +74,40 @@ export function startSync() {
   if (!supabase) return
 
   supabase.auth.onAuthStateChange((_event, session) => {
+    const id = session?.user.id ?? null
     const email = session?.user.email ?? null
-    if (email === state.email) return
-    set({ email, status: email ? state.status : 'signed-out' })
+    if (id === userId) {
+      if (email !== state.email) setState({ email }) // ör. aynı kullanıcının e-postası değişti
+      return
+    }
+    userId = id
+    if (!id) return setState({ email: null, status: 'signed-out' })
+    setState({ email, status: navigator.onLine ? 'syncing' : 'offline' })
     // Geri çağrı içinde Supabase çağrısı yapmak kilitlenmeye yol açabilir; bir sonraki tura bırak.
-    if (email) setTimeout(() => requestSync(), 0)
+    setTimeout(() => requestSync(), 0)
   })
 
   window.addEventListener('online', () => requestSync())
-  window.addEventListener('offline', () => state.email && set({ status: 'offline' }))
+  window.addEventListener('offline', () => userId && setState({ status: 'offline' }))
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') requestSync()
   })
   setInterval(() => requestSync(), INTERVAL_MS)
 
   // Yerel bir değişiklik olunca kısa bir beklemeyle gönder
-  liveQuery(async () => (await db.lists.where('dirty').equals(1).count()) + (await db.tasks.where('dirty').equals(1).count())).subscribe(
-    (pending) => {
-      if (pending === 0) return
-      clearTimeout(debounce)
-      debounce = setTimeout(() => requestSync(), DEBOUNCE_MS)
-    },
-  )
+  liveQuery(() => pendingCount(db)).subscribe((pending) => {
+    if (pending === 0) return
+    clearTimeout(debounceTimer)
+    debounceTimer = setTimeout(() => requestSync(), DEBOUNCE_MS)
+  })
+}
+
+/**
+ * Yalnızca bu cihazdan çıkış yapar; diğer cihazlardaki oturumlar açık kalır.
+ * scope 'local' ile oturum, sunucu isteği başarısız olsa bile (ör. çevrimdışı) yerelde silinir.
+ */
+export async function signOut(): Promise<void> {
+  await supabase?.auth.signOut({ scope: 'local' })
 }
 
 export function useSyncState(): SyncState {

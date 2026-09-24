@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { supabase } from './supabase'
-import { requestSync, useSyncState } from './syncController'
+import { requestSync, signOut, useSyncState } from './syncController'
 
 const time = new Intl.DateTimeFormat('tr-TR', { hour: '2-digit', minute: '2-digit' })
 
@@ -38,8 +38,8 @@ export function AccountScreen({ onBack }: { onBack: () => void }) {
               <button className="primary" onClick={() => requestSync()} disabled={sync.status === 'syncing'}>
                 Şimdi senkronize et
               </button>
-              <button className="secondary" onClick={() => supabase!.auth.signOut()}>
-                Çıkış yap
+              <button className="secondary" onClick={() => signOut()}>
+                Bu cihazdan çıkış yap
               </button>
             </div>
           </>

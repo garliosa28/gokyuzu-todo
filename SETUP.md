@@ -11,6 +11,8 @@ npm test           # testler
 npm run build      # üretim derlemesi (dist/)
 ```
 
+Telefondan denemek için `npm run dev -- --host` ile başlatıp bilgisayarın yerel IP adresini (ör. `http://192.168.1.20:5173`) açabilirsin. Görev ekleme ve düzenleme orada da çalışır. Service worker (çevrimdışı açılış, "Ana Ekrana Ekle", yeni sürüm bandı) ise geliştirme sunucusunda hiç çalışmaz. Bunları denemek için derlenmiş sürümü kullan: `npm run build` ve ardından `npm run preview` ile `localhost` üzerinde ya da yayındaki **HTTPS** adresinde.
+
 ## 2. Supabase projesi
 
 1. [supabase.com](https://supabase.com) → yeni proje (ücretsiz katman yeterli).

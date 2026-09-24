@@ -46,10 +46,19 @@ let n = 0
 let remote: FakeRemote
 let clock: number
 
-function device() {
+/** skewMs: cihaz saatinin gerçek saatten farkı (negatif = geride). */
+function device(skewMs = 0) {
   const db = new TodoDB(`sync-${n++}`)
-  const store = createStore(db, { now: () => new Date((clock += 1000)) })
-  return { db, store, sync: () => syncOnce(db, remote) }
+  /** Test sırasında değiştirilebilir (ör. saat NTP ile düzeltildi). */
+  const clockOf = { skewMs }
+  return {
+    db,
+    set skewMs(ms: number) {
+      clockOf.skewMs = ms
+    },
+    store: createStore(db, { now: (): Date => new Date((clock += 1000) + clockOf.skewMs) }),
+    sync: (to: Remote = remote, owner = 'proje-1|kullanici-1') => syncOnce(db, to, owner),
+  }
 }
 
 const titles = async (d: ReturnType<typeof device>) => (await d.store.allTasks()).map((t) => t.title).sort()
@@ -85,6 +94,23 @@ describe('senkronizasyon', () => {
     expect(await titles(phone)).toEqual(['Süt al'])
   })
 
+  it('bir cihazda silinen listeye diğer cihazda çevrimdışıyken eklenen görev iki cihazda da görünmez', async () => {
+    const phone = device()
+    const laptop = device()
+    const work = await phone.store.addList('İş')
+    await phone.sync()
+    await laptop.sync()
+
+    await laptop.store.addTask('Rapor', { listId: work.id }) // bilgisayar çevrimdışı
+    await phone.store.deleteList(work.id)
+    await phone.sync()
+    await laptop.sync()
+    await phone.sync()
+
+    expect(await titles(phone)).toEqual([])
+    expect(await titles(laptop)).toEqual([])
+  })
+
   it('iki cihaz aynı görevi değiştirirse son değişiklik kazanır (eski olan önce gönderilse de)', async () => {
     const phone = device()
     const laptop = device()
@@ -117,6 +143,87 @@ describe('senkronizasyon', () => {
     await laptop.sync()
     expect(await titles(phone)).toEqual(['Süt al (yeni)'])
     expect(await titles(laptop)).toEqual(['Süt al (yeni)'])
+  })
+
+  it('saati geride olan cihazın sonradan yaptığı değişiklik de kazanır ve iki cihaz aynı sonuçta buluşur', async () => {
+    const phone = device()
+    const laptop = device(-5000) // bilgisayarın saati 5 sn geride
+    const task = await phone.store.addTask('Süt al')
+    await phone.sync()
+    await laptop.sync()
+
+    await phone.store.updateTask(task.id, { title: 'Yarım litre süt al' })
+    await phone.sync()
+    await laptop.sync() // bilgisayar telefonun sürümünü görür…
+    await laptop.store.updateTask(task.id, { title: 'Süt al (az yağlı)' }) // …ve sonra değiştirir
+    await laptop.sync()
+    await phone.sync()
+
+    expect(await titles(laptop)).toEqual(['Süt al (az yağlı)'])
+    expect(await titles(phone)).toEqual(['Süt al (az yağlı)'])
+  })
+
+  it('iki cihaz aynı damgayla düzenlerse sunucunun sakladığı sürümde buluşurlar', async () => {
+    const phone = device(60_000) // telefonun saati 60 sn ileride
+    const laptop = device()
+    const task = await phone.store.addTask('Süt al')
+    await phone.sync()
+    await laptop.sync()
+    phone.skewMs = 0 // telefonun saati düzeltildi
+
+    // İki cihazın saati de satırın damgasının gerisinde: ikisi de "önceki + 1 ms" damgası üretir.
+    await phone.store.updateTask(task.id, { title: 'A (telefon)' })
+    await laptop.store.updateTask(task.id, { title: 'B (bilgisayar)' })
+    await phone.sync()
+    await laptop.sync()
+    await phone.sync()
+    await laptop.sync()
+
+    expect(await titles(phone)).toEqual(await titles(laptop))
+  })
+
+  it('başka bir projeye/hesaba geçilince tüm veriler oraya gönderilir ve oradakiler çekilir', async () => {
+    const phone = device()
+    const laptop = device()
+    await phone.store.addTask('Süt al')
+    await phone.sync()
+    await phone.sync()
+
+    const newProject = new FakeRemote()
+    await laptop.store.addTask('Ekmek al')
+    await laptop.sync(newProject, 'proje-2|kullanici-1')
+    await phone.sync(newProject, 'proje-2|kullanici-1')
+    await laptop.sync(newProject, 'proje-2|kullanici-1')
+
+    expect(await titles(phone)).toEqual(['Ekmek al', 'Süt al'])
+    expect(await titles(laptop)).toEqual(['Ekmek al', 'Süt al'])
+  })
+
+  it('bir senkron sürerken (ör. başka sekmede) hesap değişirse eski senkron yeni hesabın durumunu bozmaz', async () => {
+    const phone = device()
+    await phone.store.addTask('Süt al')
+    const newProject = new FakeRemote()
+    newProject.failNextPush = true // yeni hesabın ilk gönderimi ağ hatasıyla yarıda kalır
+    remote.duringPush = async () => {
+      remote.duringPush = undefined
+      // Eski hesabın gönderimi sürerken diğer sekme yeni hesapla senkron başlatır.
+      await expect(phone.sync(newProject, 'proje-2|kullanici-1')).rejects.toThrow()
+    }
+    await phone.sync() // eski hesabın senkronu, yeni sahiplik devraldıktan sonra biter
+
+    await phone.sync(newProject, 'proje-2|kullanici-1')
+    const laptop = device()
+    await laptop.sync(newProject, 'proje-2|kullanici-1')
+    expect(await titles(laptop)).toEqual(['Süt al'])
+  })
+
+  it('aynı sahiple tekrar senkronlamak zaten gönderilmiş satırları yeniden göndermez', async () => {
+    const phone = device()
+    await phone.store.addTask('Süt al')
+    await phone.sync()
+    const writes = remote.seq
+    await phone.sync()
+    expect(remote.seq).toBe(writes)
   })
 
   it('gönderim başarısız olursa değişiklik kaybolmaz, sonraki senkronda gider', async () => {
