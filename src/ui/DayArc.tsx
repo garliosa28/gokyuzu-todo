@@ -1,9 +1,21 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type FocusEvent, type PointerEvent } from 'react'
 import type { DayPart, Task } from '../data/types'
 import { arcPath, HORIZON, hourToT, moonPosition, PART_HOURS, pointOnArc, starPosition, sunPosition, VIEW } from './arc'
 import { DAY_PART_LABELS } from './format'
 
 const MILKY_WAY_AT = 30
+/** Dokunmayla açılan açıklama bu kadar sonra kendiliğinden kapanır (üzerine gelme olmayan cihazlar). */
+const TOUCH_TIP_MS = 2500
+const TIP_HALF_WIDTH = 110
+
+interface StarTip {
+  id: string
+  title: string
+  part: string
+  /** figure'a göre piksel konumu (yıldızın merkezi). */
+  x: number
+  y: number
+}
 
 /**
  * Günün yayı: gerçek saate göre ilerleyen güneş, sabah / öğle / akşam bölgeleri ve bugün biten
@@ -27,11 +39,39 @@ export function DayArc({ tasks, nowPart }: { tasks: Task[]; nowPart: DayPart }) 
     done.forEach((t) => known.current!.add(t.id))
   })
 
-  const stars = done.map((t) => ({ id: t.id, ...starPosition(t) }))
+  const stars = done.map((t) => ({ id: t.id, task: t, ...starPosition(t) }))
+
+  // Yıldız açıklaması: üzerine gelince (fare), odaklanınca (klavye) ya da dokununca (iPhone) görünür.
+  const figure = useRef<HTMLElement>(null)
+  const [tip, setTip] = useState<StarTip | null>(null)
+  const tipTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+  useEffect(() => () => clearTimeout(tipTimer.current), [])
+  // Açıklaması açık yıldız artık yoksa (ör. görev geri alındı) açıklamayı kapat.
+  const shownTip = tip && done.some((t) => t.id === tip.id) ? tip : null
+
+  function showTip(el: Element, task: Task) {
+    const box = figure.current?.getBoundingClientRect()
+    const star = el.getBoundingClientRect()
+    if (!box) return
+    clearTimeout(tipTimer.current)
+    setTip({
+      id: task.id,
+      title: task.title,
+      part: task.day_part ? DAY_PART_LABELS[task.day_part] : DAY_PART_LABELS.anytime,
+      // Yayın ucundaki yıldızlarda balon ekran dışına taşmasın (balon en fazla 220px genişliğinde).
+      x: Math.min(Math.max(star.left + star.width / 2 - box.left, TIP_HALF_WIDTH), box.width - TIP_HALF_WIDTH),
+      y: star.top + star.height / 2 - box.top,
+    })
+  }
+
+  function onStarPointer(e: PointerEvent<SVGGElement>, task: Task) {
+    showTip(e.currentTarget, task)
+    if (e.pointerType !== 'mouse') tipTimer.current = setTimeout(() => setTip(null), TOUCH_TIP_MS)
+  }
   const constellation = [...stars].sort((a, b) => a.x - b.x)
 
   return (
-    <figure className={`day-arc${night ? ' night' : ''}${moon.up ? ' nighttime' : ''}`} aria-label={arcLabel(open, done.length, night)}>
+    <figure ref={figure} className={`day-arc${night ? ' night' : ''}${moon.up ? ' nighttime' : ''}`} aria-label={arcLabel(open, done.length, night)}>
       <svg viewBox={`0 0 ${VIEW.width} ${VIEW.height}`} role="presentation">
         <defs>
           <radialGradient id="sun-glow">
@@ -74,7 +114,22 @@ export function DayArc({ tasks, nowPart }: { tasks: Task[]; nowPart: DayPart }) 
           pathLength={1}
         />
         {stars.map((s) => (
-          <g key={s.id} data-star={s.id} transform={`translate(${s.x} ${s.y})`}>
+          <g
+            key={s.id}
+            data-star={s.id}
+            className={`star-hit${shownTip?.id === s.id ? ' active' : ''}`}
+            transform={`translate(${s.x} ${s.y})`}
+            tabIndex={0}
+            role="img"
+            aria-label={`Biten görev: ${s.task.title}`}
+            onPointerEnter={(e) => e.pointerType === 'mouse' && showTip(e.currentTarget, s.task)}
+            onPointerLeave={(e) => e.pointerType === 'mouse' && setTip(null)}
+            onPointerDown={(e) => onStarPointer(e, s.task)}
+            onFocus={(e: FocusEvent<SVGGElement>) => showTip(e.currentTarget, s.task)}
+            onBlur={() => setTip(null)}
+          >
+            {/* Görünmez, daha büyük dokunma alanı: yıldızlar parmak için küçük. */}
+            <circle className="star-target" r="9" />
             <path className={`star${arriving.has(s.id) ? ' arriving' : ''}`} d={starShape(s.size)} />
           </g>
         ))}
@@ -100,6 +155,12 @@ export function DayArc({ tasks, nowPart }: { tasks: Task[]; nowPart: DayPart }) 
           )
         })}
       </svg>
+      {shownTip && (
+        <div className="star-tip" role="tooltip" style={{ left: shownTip.x, top: shownTip.y }}>
+          <span className="star-tip-title">{shownTip.title}</span>
+          <span className="star-tip-part">{shownTip.part} · bitti</span>
+        </div>
+      )}
     </figure>
   )
 }
