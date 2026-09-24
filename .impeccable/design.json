@@ -1,0 +1,135 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-24T21:30:00.000Z",
+  "title": "Design System: Todo",
+  "extensions": {
+    "colorMeta": {
+      "night-coal": { "role": "neutral", "displayName": "Gece Kömürü", "canonical": "#1c1c1b", "tonalRamp": ["#0e0e0d", "#1c1c1b", "#2a2a28", "#3a3936", "#55534f", "#7a7872", "#a8a59e", "#d6d3cc"] },
+      "bone-white": { "role": "neutral", "displayName": "Kemik Beyazı", "canonical": "#f0efea", "tonalRamp": ["#2d2c29", "#4a4944", "#6b6a64", "#8e8c85", "#b1afa8", "#d2d0ca", "#e6e5e0", "#f0efea"] },
+      "twilight-amber": { "role": "primary", "displayName": "Alacakaranlık Amberi", "canonical": "#f2b35a", "tonalRamp": ["#3d2506", "#63400f", "#8c5c18", "#b57a22", "#d9982f", "#f2b35a", "#f7cd90", "#fbe6c7"] },
+      "starlight": { "role": "primary", "displayName": "Yıldız Işığı", "canonical": "#f6e3a4", "tonalRamp": ["#3a3010", "#5e4e1c", "#85702b", "#ab913d", "#cdb35a", "#e8cf7c", "#f6e3a4", "#fcf4d8"] },
+      "deep-night": { "role": "neutral", "displayName": "Derin Gece", "canonical": "#0e1426", "tonalRamp": ["#070a13", "#0e1426", "#1a233d", "#2b3450", "#434e6d", "#646f8e", "#8f98b3", "#c1c7d8"] },
+      "paper": { "role": "neutral", "displayName": "Kâğıt", "canonical": "#f6f5f2", "tonalRamp": ["#2e2d2a", "#4c4b47", "#6e6c67", "#918f89", "#b4b2ac", "#d4d2cc", "#e8e6e1", "#f6f5f2"] },
+      "ink": { "role": "neutral", "displayName": "Mürekkep", "canonical": "#262624", "tonalRamp": ["#121211", "#262624", "#3a3a37", "#51514d", "#6c6b67", "#8a8984", "#aeada8", "#d3d2ce"] },
+      "morning-amber": { "role": "primary", "displayName": "Sabah Amberi", "canonical": "#e0902e" },
+      "day-star": { "role": "primary", "displayName": "Gün Yıldızı", "canonical": "#c48a1c" },
+      "dusk-blue": { "role": "neutral", "displayName": "Alacakaranlık Mavisi", "canonical": "#2b3450" },
+      "night-danger": { "role": "tertiary", "displayName": "Kor (koyu uyarı)", "canonical": "#e0826c" },
+      "paper-danger": { "role": "tertiary", "displayName": "Kiremit (açık uyarı)", "canonical": "#b4452f" },
+      "night-warm": { "role": "neutral", "displayName": "Sıcak Gece", "canonical": "#3a3226" },
+      "paper-warm": { "role": "neutral", "displayName": "Sıcak Kâğıt", "canonical": "#fbf3e4" }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Ekran başlığı", "purpose": "Ekran başına tek başlık: Bugün, Gelen Kutusu, Listeler." },
+      "title": { "displayName": "Görev başlığı", "purpose": "Görev ve liste adları." },
+      "body": { "displayName": "Gövde", "purpose": "Açıklama metinleri." },
+      "label": { "displayName": "Bölüm etiketi", "purpose": "Büyük harfli bölüm başlıkları (Sabah, Öğle, Akşam, Gecikmiş)." },
+      "meta": { "displayName": "Alt bilgi", "purpose": "Tarih · liste · bölüm satırı." }
+    },
+    "shadows": [
+      { "name": "floating-banner", "value": "0 6px 20px rgb(0 0 0 / .18)", "purpose": "Geri al ve yeni sürüm bantları." },
+      { "name": "deck-card", "value": "0 4px 14px rgb(0 0 0 / .12)", "purpose": "Sabah destesindeki kartlar." }
+    ],
+    "motion": [
+      { "name": "ease-out", "value": "cubic-bezier(0.16, 1, 0.3, 1)", "purpose": "Kendinden emin varış: tik çizimi, uçuş, kart yükselişi." },
+      { "name": "ease-in", "value": "cubic-bezier(0.55, 0, 0.9, 0.35)", "purpose": "Ağırlaşıp çıkış: düşme, ufka kayma, kart fırlatma." },
+      { "name": "settle", "value": "cubic-bezier(0.34, 1.32, 0.64, 1)", "purpose": "Yerçekimi: satırın ve kartın yayla yerine oturması (bilinçli hafif aşma)." },
+      { "name": "check-draw", "value": "220ms", "purpose": "Tikin kalem darbesiyle çizilmesi." },
+      { "name": "ink-draw", "value": "360ms", "purpose": "Mürekkep çizgisi." },
+      { "name": "flight", "value": "520ms", "purpose": "Görevden yıldıza uçan ışık." },
+      { "name": "celebration", "value": "1.6–1.8s", "purpose": "Takımyıldız, gece ve günbatımı; günün tek uzun anı." }
+    ],
+    "breakpoints": [
+      { "name": "content-max", "value": "640px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Birincil düğme",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Tek birincil eylem: Şimdi senkronize et, Giriş yap, Yenile.",
+      "html": "<button class=\"ds-btn-primary\">Şimdi senkronize et</button>",
+      "css": ".ds-btn-primary { background: var(--accent, #f0efea); color: var(--bg, #1c1c1b); border: none; border-radius: 12px; padding: 12px 16px; font-size: 16px; cursor: pointer; transition: opacity .15s ease, transform .1s ease; } .ds-btn-primary:hover { opacity: .9; } .ds-btn-primary:active { transform: scale(.98); } .ds-btn-primary:focus-visible { outline: 2px solid var(--accent, #f0efea); outline-offset: 2px; }"
+    },
+    {
+      "name": "İkincil düğme",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Yan eylemler: Bu cihazdan çıkış yap.",
+      "html": "<button class=\"ds-btn-secondary\">Bu cihazdan çıkış yap</button>",
+      "css": ".ds-btn-secondary { background: none; color: var(--text, #f0efea); border: 1px solid var(--line, #3a3936); border-radius: 12px; padding: 12px 16px; font-size: 16px; cursor: pointer; transition: border-color .15s ease; } .ds-btn-secondary:hover { border-color: var(--muted, #9a978f); } .ds-btn-secondary:focus-visible { outline: 2px solid var(--accent, #f0efea); outline-offset: 2px; }"
+    },
+    {
+      "name": "Çip",
+      "kind": "chip",
+      "refersTo": "chip",
+      "description": "Düzenleyicideki hızlı seçimler; seçili çip vurguya döner.",
+      "html": "<div class=\"ds-chips\"><button class=\"ds-chip\">Sabah</button><button class=\"ds-chip ds-chip-selected\" aria-pressed=\"true\">Öğle</button><button class=\"ds-chip\">Akşam</button></div>",
+      "css": ".ds-chips { display: flex; gap: 6px; } .ds-chip { padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line, #3a3936); background: var(--surface, #262624); color: var(--text, #f0efea); font-size: 14px; cursor: pointer; transition: background .15s ease, color .15s ease; } .ds-chip:hover { border-color: var(--muted, #9a978f); } .ds-chip:focus-visible { outline: 2px solid var(--accent, #f0efea); outline-offset: 2px; } .ds-chip-selected { background: var(--accent, #f0efea); border-color: var(--accent, #f0efea); color: var(--bg, #1c1c1b); }"
+    },
+    {
+      "name": "Hızlı ekleme",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Yakalama alanı ve yanındaki ekle düğmesi.",
+      "html": "<form class=\"ds-quick\"><input class=\"ds-input\" placeholder=\"Bugün için görev ekle…\" /><button class=\"ds-add\" aria-label=\"Ekle\">+</button></form>",
+      "css": ".ds-quick { display: flex; gap: 8px; } .ds-input { flex: 1; min-width: 0; padding: 12px 14px; font-size: 17px; border: 1px solid var(--line, #3a3936); border-radius: 12px; background: var(--surface, #262624); color: var(--text, #f0efea); transition: border-color .15s ease; } .ds-input:focus-visible { outline: none; border-color: var(--muted, #9a978f); } .ds-add { flex: none; width: 48px; border-radius: 12px; border: none; background: var(--accent, #f0efea); color: var(--bg, #1c1c1b); font-size: 24px; cursor: pointer; } .ds-add:hover { opacity: .9; }"
+    },
+    {
+      "name": "Görev satırı",
+      "kind": "custom",
+      "refersTo": "task-row",
+      "description": "Halka işaret kutusu, başlık ve meta; tamamlanınca tik ve mürekkep çizilir.",
+      "html": "<ul class=\"ds-tasks\"><li class=\"ds-task\"><button class=\"ds-check\" aria-label=\"Tamamla\"><svg viewBox=\"0 0 24 24\"><circle class=\"ds-ring\" cx=\"12\" cy=\"12\" r=\"10\"/><path class=\"ds-mark\" d=\"M7.2 12.6 L10.6 15.8 L17 8.6\" pathLength=\"1\"/></svg></button><span class=\"ds-body\"><span class=\"ds-title\">Raporu gönder</span><span class=\"ds-meta\">İş</span></span></li><li class=\"ds-task ds-done\"><button class=\"ds-check\" aria-label=\"Geri al\"><svg viewBox=\"0 0 24 24\"><circle class=\"ds-ring\" cx=\"12\" cy=\"12\" r=\"10\"/><path class=\"ds-mark\" d=\"M7.2 12.6 L10.6 15.8 L17 8.6\" pathLength=\"1\"/></svg></button><span class=\"ds-body\"><span class=\"ds-title\">Faturayı öde<svg class=\"ds-ink\" viewBox=\"0 0 100 8\" preserveAspectRatio=\"none\"><path d=\"M1 5 C 10 2.5, 20 6.5, 32 4.2 S 55 3, 68 4.8 S 88 6, 99 3.4\" pathLength=\"1\"/></svg></span><span class=\"ds-meta\">Ev</span></span></li></ul>",
+      "css": ".ds-tasks { list-style: none; padding: 0; margin: 0; } .ds-task { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line, #3a3936); } .ds-check { width: 28px; height: 28px; padding: 0; background: none; border: none; cursor: pointer; } .ds-check svg { width: 100%; height: 100%; } .ds-ring { fill: transparent; stroke: var(--muted, #9a978f); stroke-width: 1.8; transition: fill .25s ease; } .ds-mark { fill: none; stroke: var(--bg, #1c1c1b); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 1; stroke-dashoffset: 1; transition: stroke-dashoffset .22s cubic-bezier(0.16, 1, 0.3, 1); } .ds-done .ds-ring { fill: var(--accent, #f0efea); stroke: var(--accent, #f0efea); } .ds-done .ds-mark { stroke-dashoffset: 0; } .ds-body { display: flex; flex-direction: column; gap: 2px; } .ds-title { position: relative; display: inline-block; font-size: 17px; color: var(--text, #f0efea); } .ds-done .ds-title { color: var(--muted, #9a978f); } .ds-ink { position: absolute; left: -2%; top: calc(50% - .22em); width: 104%; height: .5em; overflow: visible; } .ds-ink path { fill: none; stroke: var(--muted, #9a978f); stroke-width: 1.6; stroke-linecap: round; vector-effect: non-scaling-stroke; } .ds-meta { font-size: 13px; color: var(--muted, #9a978f); } .ds-check:focus-visible { outline: 2px solid var(--accent, #f0efea); outline-offset: 2px; border-radius: 50%; }"
+    },
+    {
+      "name": "Sekme çubuğu",
+      "kind": "nav",
+      "refersTo": "tabbar",
+      "description": "Sabit alt gezinme; etkin sekme metin renginde ve kalın.",
+      "html": "<nav class=\"ds-tabbar\"><button class=\"ds-tab ds-active\">Bugün</button><button class=\"ds-tab\">Gelen Kutusu</button><button class=\"ds-tab\">Listeler</button></nav>",
+      "css": ".ds-tabbar { display: flex; background: var(--surface, #262624); border-top: 1px solid var(--line, #3a3936); } .ds-tab { flex: 1; padding: 14px 0; background: none; border: none; font-size: 14px; color: var(--muted, #9a978f); cursor: pointer; transition: color .15s ease; } .ds-tab:hover { color: var(--text, #f0efea); } .ds-tab:focus-visible { outline: 2px solid var(--accent, #f0efea); outline-offset: -2px; } .ds-active { color: var(--text, #f0efea); font-weight: 600; }"
+    },
+    {
+      "name": "Geri al bandı",
+      "kind": "custom",
+      "refersTo": "banner",
+      "description": "Kararlardan sonra 5 saniye; sekme çubuğunun üstünde yüzer.",
+      "html": "<div class=\"ds-banner\" role=\"status\"><span>Silindi: Kargoyu takip et</span><button class=\"ds-banner-btn\">Geri al</button></div>",
+      "css": ".ds-banner { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 8px 8px 14px; border-radius: 12px; border: 1px solid var(--line, #3a3936); background: var(--surface, #262624); color: var(--text, #f0efea); box-shadow: 0 6px 20px rgb(0 0 0 / .18); font-size: 14px; } .ds-banner-btn { border: none; background: var(--accent, #f0efea); color: var(--bg, #1c1c1b); border-radius: 8px; padding: 6px 12px; cursor: pointer; } .ds-banner-btn:focus-visible { outline: 2px solid var(--accent, #f0efea); outline-offset: 2px; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "Cep Gökyüzü",
+    "overview": "Gün bir gökyüzü, görevler onun içinde yaşayan nesneler. Zemin sakin ve kâğıt gibi. Renk neredeyse yok; sıcaklık yalnızca göğün kendisinden geliyor: güneş, yıldızlar, alacakaranlık. Arayüz tek elle, kısa anlarda kullanılan bir araç (Operate). Bu yüzden karakter büyük yüzeylerde değil, küçük ve kesin ayrıntılarda yaşıyor: kalem darbesiyle çizilen bir tik, başlığın üstünden geçen mürekkep, yerine yaylanarak oturan bir satır.\n\nYoğunluk düşük, satırlar nefes alıyor, tek sütun ve en fazla 640px genişlik. Hiyerarşi renkle değil ağırlık ve boyutla kuruluyor: tek bir kalın ekran başlığı, sakin görev başlıkları, küçük büyük harfli bölüm etiketleri. Açık ve koyu tema eşit vatandaş; sistem cihazın tercihini izliyor. Koyu tema, uygulamanın asıl kullanıldığı akşam ve gece sahnesi için birincil kabul ediliyor.\n\nHareket bir dekorasyon değil, dünyanın fiziği: yerçekimi (düşme, oturma, sarkma), mürekkep (çizilen izler) ve gökyüzü (yay, yıldız, gece). Rutin anlar hızlı; günün tek büyük anı son görevin bitişi.",
+    "keyCharacteristics": [
+      "Kâğıt gibi düz zemin, sıcak nötr tonlar, ince çizgiler",
+      "Tek sıcak vurgu ailesi: güneş ve yıldız amberi, yalnızca gökyüzünde",
+      "Sistem yazı tipi; hiyerarşi ağırlık, boyut ve büyük harfli etiketlerle",
+      "Yumuşak köşeler (8–12px) ve hap biçimli çipler",
+      "Anlam taşıyan hareket: tik ve mürekkep çizimi, yerçekimi, günün yayı"
+    ],
+    "rules": [
+      { "name": "Gökyüzü Kuralı", "body": "Amber ve yıldız renkleri yalnızca gökyüzünde (yay, yıldızlar, uçan ışık) yaşar. Düğmeler, bağlantılar ya da vurgu metni amber kullanmaz.", "section": "colors" },
+      { "name": "İki Tema Kuralı", "body": "Her renk bir çift olarak tanımlanır (koyu / açık); yeni bir renk eklemek iki değer eklemek demektir. Değerler :root üzerinde CSS değişkeni olarak durur ve prefers-color-scheme ile değişir.", "section": "colors" },
+      { "name": "Ağırlıkla Vurgu Kuralı", "body": "Vurgu renkle değil ağırlık ve boyutla yapılır; renkli metin yalnızca durum bildirir (gecikmiş).", "section": "typography" },
+      { "name": "Düz-Varsayılan Kuralı", "body": "Satırlar, giriş alanları ve paneller düzdür. Gölge, \"bu şey diğerlerinin üstünde ve elle tutulabilir\" demektir; başka bir anlamda kullanılmaz.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do hareketi dünyanın fiziğiyle anlat: düşme ve oturma için yerçekimi, izler için mürekkep, gün için gökyüzü.",
+      "Do rutin geri bildirimi 300ms'nin altında tut; tek uzun an günün son görevinin kutlamasıdır.",
+      "Do her hareketin prefers-reduced-motion karşılığını yaz: uzamsal hareket kalkar, kısa soluklaşma ve renk değişimi kalır.",
+      "Do her yeni rengi hem koyu hem açık tema için bir çift olarak ekle.",
+      "Do kararları (silme, erteleme, taşıma) Geri al bandıyla geri alınabilir yap."
+    ],
+    "donts": [
+      "Don't amber ve yıldız renklerini gökyüzü dışında kullanma.",
+      "Don't düz üstü çizili metin kullanma; tamamlama her zaman mürekkep çizgisidir.",
+      "Don't satırlara, girişlere ya da panellere dinlenme hâlinde gölge verme.",
+      "Don't kullanıcıyı bekleten ya da tekrarlandıkça yoran hareket ekleme; tamamlama günde onlarca kez olur.",
+      "Don't konfeti, ses ya da maskot ekleme."
+    ]
+  }
+}
