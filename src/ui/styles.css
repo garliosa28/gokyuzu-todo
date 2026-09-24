@@ -10,6 +10,7 @@
   --sun: #e0902e;
   --star: #c48a1c;
   --sky-night: #2b3450;
+  --moon: #8f97ab;
   color-scheme: light dark;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   -webkit-text-size-adjust: 100%;
@@ -27,6 +28,7 @@
     --sun: #f2b35a;
     --star: #f6e3a4;
     --sky-night: #0e1426;
+    --moon: #ece6d2;
   }
 }
 * { box-sizing: border-box; }
@@ -227,6 +229,10 @@ code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: .9em; }
 .arc-dusk { opacity: 0; transition: opacity 1.6s ease .5s; }
 .sun { transition: transform 1.6s cubic-bezier(0.45, 0, 0.2, 1); }
 .sun-disc { fill: var(--sun); }
+.moon { transition: transform 1.6s cubic-bezier(0.45, 0, 0.2, 1); }
+.moon-disc { fill: var(--moon); }
+/* Gece saatlerinde kubbeye hafif bir gece tonu iner; bütün görevler bitince tam gece olur. */
+.day-arc.nighttime .arc-dusk { opacity: .3; }
 .star { fill: var(--star); }
 .star.arriving { animation: star-arrive .5s cubic-bezier(0.16, 1, 0.3, 1) .46s backwards; }
 @keyframes star-arrive {
@@ -282,7 +288,7 @@ code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: .9em; }
 
 /* Hareketi azalt: uzamsal hareket yok; durum değişimi kısa soluklaşma ve renkle anlaşılır */
 @media (prefers-reduced-motion: reduce) {
-  .sun, .arc-dusk, .arc-elapsed, .constellation, .card, .check-mark, .ink path { transition-duration: .01s !important; transition-delay: 0s !important; }
+  .sun, .moon, .arc-dusk, .arc-elapsed, .constellation, .card, .check-mark, .ink path { transition-duration: .01s !important; transition-delay: 0s !important; }
   .star.arriving, .card.top { animation: none; }
   .task.sagging .task-row { transform: none; }
   .day-arc.night .constellation { transition: none; }

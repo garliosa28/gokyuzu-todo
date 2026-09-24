@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { DayPart, Task } from '../data/types'
-import { arcPath, HORIZON, hourToT, PART_HOURS, pointOnArc, starPosition, sunPosition, VIEW } from './arc'
+import { arcPath, HORIZON, hourToT, moonPosition, PART_HOURS, pointOnArc, starPosition, sunPosition, VIEW } from './arc'
 import { DAY_PART_LABELS } from './format'
 
 const MILKY_WAY_AT = 30
@@ -15,6 +15,8 @@ export function DayArc({ tasks, nowPart }: { tasks: Task[]; nowPart: DayPart }) 
   const open = tasks.length - done.length
   const night = done.length > 0 && open === 0
   const sun = sunPosition(now)
+  // Gündüz güneş, gece (21.00–06.00) ay: ikisi de ufkun arkasından doğup batar.
+  const moon = moonPosition(now)
   const elapsed = Math.min(1, Math.max(0, hourToT(now.getHours() + now.getMinutes() / 60)))
 
   // İlk çizimde var olan yıldızlar yerinde durur; sonradan gelenler uçan görevi bekleyip belirir.
@@ -29,7 +31,7 @@ export function DayArc({ tasks, nowPart }: { tasks: Task[]; nowPart: DayPart }) 
   const constellation = [...stars].sort((a, b) => a.x - b.x)
 
   return (
-    <figure className={`day-arc${night ? ' night' : ''}`} aria-label={arcLabel(open, done.length, night)}>
+    <figure className={`day-arc${night ? ' night' : ''}${moon.up ? ' nighttime' : ''}`} aria-label={arcLabel(open, done.length, night)}>
       <svg viewBox={`0 0 ${VIEW.width} ${VIEW.height}`} role="presentation">
         <defs>
           <radialGradient id="sun-glow">
@@ -40,6 +42,15 @@ export function DayArc({ tasks, nowPart }: { tasks: Task[]; nowPart: DayPart }) 
           <clipPath id="above-horizon">
             <rect x="0" y="-40" width={VIEW.width} height={HORIZON + 40} />
           </clipPath>
+          <radialGradient id="moon-glow">
+            <stop offset="0" stopColor="var(--moon)" stopOpacity="0.35" />
+            <stop offset="1" stopColor="var(--moon)" stopOpacity="0" />
+          </radialGradient>
+          {/* Hilal: dolu diskten biraz kaydırılmış ikinci disk çıkarılır. */}
+          <mask id="crescent">
+            <circle r="6.5" fill="white" />
+            <circle cx="3.2" cy="-2" r="5.6" fill="black" />
+          </mask>
           <linearGradient id="dusk" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0" stopColor="var(--sky-night)" stopOpacity="0.9" />
             <stop offset="1" stopColor="var(--sky-night)" stopOpacity="0" />
@@ -72,6 +83,10 @@ export function DayArc({ tasks, nowPart }: { tasks: Task[]; nowPart: DayPart }) 
           <g className="sun" style={{ transform: `translate(${sun.x}px, ${night || !sun.up ? HORIZON + 26 : sun.y}px)` }}>
             <circle r="16" fill="url(#sun-glow)" />
             <circle className="sun-disc" r="6.5" />
+          </g>
+          <g className="moon" style={{ transform: `translate(${moon.x}px, ${moon.up ? moon.y : HORIZON + 26}px)` }}>
+            <circle r="15" fill="url(#moon-glow)" />
+            <circle className="moon-disc" r="6.5" mask="url(#crescent)" transform="rotate(-20)" />
           </g>
         </g>
 

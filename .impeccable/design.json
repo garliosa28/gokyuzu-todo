@@ -143,6 +143,16 @@
         "role": "neutral",
         "displayName": "Sıcak Kâğıt",
         "canonical": "#fbf3e4"
+      },
+      "moonlight": {
+        "role": "primary",
+        "displayName": "Ay Işığı",
+        "canonical": "#ece6d2"
+      },
+      "pale-moon": {
+        "role": "primary",
+        "displayName": "Soluk Ay",
+        "canonical": "#8f97ab"
       }
     },
     "typographyMeta": {
@@ -298,7 +308,7 @@
     "rules": [
       {
         "name": "Gökyüzü Kuralı",
-        "body": "Amber ve yıldız renkleri yalnızca gökyüzünde (yay, yıldızlar, uçan ışık) yaşar. Düğmeler, bağlantılar ya da vurgu metni amber kullanmaz.",
+        "body": "Amber, yıldız ve ay renkleri yalnızca gökyüzünde (yay, güneş, ay, yıldızlar, uçan ışık) yaşar. Düğmeler, bağlantılar ya da vurgu metni amber kullanmaz.",
         "section": "colors"
       },
       {

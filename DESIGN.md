@@ -10,6 +10,7 @@ colors:
   twilight-amber: "#f2b35a"
   starlight: "#f6e3a4"
   deep-night: "#0e1426"
+  moonlight: "#ece6d2"
   night-danger: "#e0826c"
   night-warm: "#3a3226"
   paper: "#f6f5f2"
@@ -20,6 +21,7 @@ colors:
   morning-amber: "#e0902e"
   day-star: "#c48a1c"
   dusk-blue: "#2b3450"
+  pale-moon: "#8f97ab"
   paper-danger: "#b4452f"
   paper-warm: "#fbf3e4"
 typography:
@@ -128,6 +130,7 @@ Sıcak nötrlerden oluşan sessiz bir palet; tek renk olayı gökyüzünde gerç
 ### Primary
 - **Alacakaranlık Amberi / Sabah Amberi** (twilight-amber koyu, morning-amber açık): Güneş diski, yayın geçen gün kısmı. Yalnızca Günün yayında kullanılır.
 - **Yıldız Işığı / Gün Yıldızı** (starlight koyu, day-star açık): Biten görevlerin yıldızları, takımyıldız çizgileri ve yıldıza uçan ışık.
+- **Ay Işığı / Soluk Ay** (moonlight koyu, pale-moon açık): Gece saatlerinde (21.00–06.00) yayda ilerleyen hilal ve ışıması.
 
 ### Neutral
 - **Gece Kömürü / Kâğıt** (night-coal, paper): Sayfa zemini.
@@ -140,7 +143,7 @@ Sıcak nötrlerden oluşan sessiz bir palet; tek renk olayı gökyüzünde gerç
 - **Uyarı** (night-danger, paper-danger): Gecikmiş başlığı ve tarihi, silme düğmesinin çerçevesi.
 
 ### Named Rules
-**Gökyüzü Kuralı.** Amber ve yıldız renkleri yalnızca gökyüzünde (yay, yıldızlar, uçan ışık) yaşar. Düğmeler, bağlantılar ya da vurgu metni amber kullanmaz.
+**Gökyüzü Kuralı.** Amber, yıldız ve ay renkleri yalnızca gökyüzünde (yay, güneş, ay, yıldızlar, uçan ışık) yaşar. Düğmeler, bağlantılar ya da vurgu metni amber kullanmaz.
 
 **İki Tema Kuralı.** Her renk bir çift olarak tanımlanır (koyu / açık); yeni bir renk eklemek iki değer eklemek demektir. Değerler `:root` üzerinde CSS değişkeni olarak durur ve `prefers-color-scheme` ile değişir.
 
@@ -216,7 +219,7 @@ Dokunsal ve sakin; basıldığında cevap verir, beklerken sessizdir.
 Halka işaret kutusu, başlık ve altında soluk meta satırı. Tamamlanınca tik kalem darbesiyle çizilir (220ms), halka vurguyla dolar, başlığın üstünden dalgalı bir mürekkep çizgisi geçer (360ms) ve Bugün ekranındaysa kutudan yıldıza bir ışık uçar (520ms). Gecikmiş satır gün başına milimetrik sarkar (en fazla 6 gün).
 
 ### Günün yayı (imza bileşen)
-Başlığın altında yarım elips. Gerçek saate göre ilerleyen güneş (06.00–21.00), yayın geçen kısmı amber, 12.00 ve 17.00'de bölüm noktaları, ufkun altında Sabah / Öğle / Akşam etiketleri. Biten her görev kendi bölümünde kararlı bir yere yıldız bırakır. Bugünün bütün görevleri bitince yıldızlar takımyıldıza bağlanır, kubbeye gece iner, güneş ufkun arkasına batar. 30 yıldızın üstünde samanyolu bandı belirir.
+Başlığın altında yarım elips. Gerçek saate göre ilerleyen güneş (06.00–21.00), gece ise aynı yayda ilerleyen hilal biçimli ay (21.00–06.00; kubbeye hafif gece tonu iner), yayın geçen kısmı amber, 12.00 ve 17.00'de bölüm noktaları, ufkun altında Sabah / Öğle / Akşam etiketleri. Biten her görev kendi bölümünde kararlı bir yere yıldız bırakır. Bugünün bütün görevleri bitince yıldızlar takımyıldıza bağlanır, kubbeye gece iner, güneş ufkun arkasına batar. 30 yıldızın üstünde samanyolu bandı belirir.
 
 ### Sabah destesi (imza bileşen)
 Dünden kalanlar üst üste kartlar. Üstteki kart sürüklenir: sağa Bugün, sola Ertele, aşağı Sil (88px eşik); yön ipucu kartın köşesinde belirir. Yetersiz sürüklenen kart yayla yerine döner. Düğmeler aynı uçuşu yapar.

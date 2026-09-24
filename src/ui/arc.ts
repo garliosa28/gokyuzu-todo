@@ -35,6 +35,15 @@ export function arcPath(scale = 1): string {
   return `M ${start.x} ${start.y} A ${RADIUS_X * scale} ${RADIUS_Y * scale} 0 0 1 ${end.x} ${end.y}`
 }
 
+/** Ay 21.00'de doğar, gece boyunca yayı geçer, 06.00'da batar (güneşin tersi). */
+export function moonPosition(now: Date): { x: number; y: number; up: boolean } {
+  const hour = now.getHours() + now.getMinutes() / 60
+  const nightHour = hour < SUNRISE ? hour + 24 : hour
+  const t = (nightHour - SUNSET) / (24 - SUNSET + SUNRISE)
+  const up = t >= 0 && t <= 1
+  return { ...pointOnArc(Math.min(1, Math.max(0, t))), up }
+}
+
 export function sunPosition(now: Date): { x: number; y: number; up: boolean } {
   const hour = now.getHours() + now.getMinutes() / 60
   const t = hourToT(hour)
