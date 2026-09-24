@@ -7,6 +7,9 @@
   --accent: #262624;
   --danger: #b4452f;
   --warn-bg: #fbf3e4;
+  --sun: #e0902e;
+  --star: #c48a1c;
+  --sky-night: #2b3450;
   color-scheme: light dark;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   -webkit-text-size-adjust: 100%;
@@ -21,6 +24,9 @@
     --accent: #f0efea;
     --danger: #e0826c;
     --warn-bg: #3a3226;
+    --sun: #f2b35a;
+    --star: #f6e3a4;
+    --sky-night: #0e1426;
   }
 }
 * { box-sizing: border-box; }
@@ -65,14 +71,12 @@ button { cursor: pointer; -webkit-tap-highlight-color: transparent; }
   background: none; border: none; padding: 0; text-align: left;
 }
 .task .title { font-size: 17px; word-break: break-word; }
-.task.done .title { color: var(--muted); text-decoration: line-through; }
+.task .title { position: relative; display: inline-block; max-width: 100%; transition: color .3s ease; }
+.task.done .title { color: var(--muted); }
 .task .meta { font-size: 13px; color: var(--muted); }
 .task .meta.overdue { color: var(--danger); }
-.check {
-  flex: none; width: 26px; height: 26px; border-radius: 50%;
-  border: 2px solid var(--muted); background: none; font-size: 14px; line-height: 1; padding: 0;
-}
-.task.done .check { background: var(--accent); border-color: var(--accent); color: var(--bg); }
+.check { flex: none; width: 28px; height: 28px; padding: 0; background: none; border: none; }
+.check svg { width: 100%; height: 100%; overflow: visible; }
 
 /* Görev düzenleyici */
 .editor { display: flex; flex-direction: column; gap: 10px; padding: 0 0 14px 38px; }
@@ -114,13 +118,9 @@ button { cursor: pointer; -webkit-tap-highlight-color: transparent; }
 /* Sabah gözden geçirmesi */
 .review { margin-top: 16px; padding: 12px 14px; border-radius: 12px; background: var(--warn-bg); }
 .review-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
-.review ul { list-style: none; padding: 0; margin: 8px 0 0; }
-.review li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px; padding: 8px 0; border-top: 1px solid var(--line); }
-.review-title { flex: 1 1 140px; }
-.review-actions { display: flex; gap: 6px; }
+.review-actions { display: flex; justify-content: space-between; gap: 6px; margin-top: 10px; }
 .review-actions button { padding: 5px 10px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); font-size: 14px; }
 .link { background: none; border: none; color: var(--muted); font-size: 14px; text-decoration: underline; padding: 0; }
-.review .meta { color: var(--muted); font-size: 13px; }
 
 /* Senkron rozeti */
 .app { position: relative; }
@@ -175,3 +175,105 @@ code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: .9em; }
 .section-title.now { color: var(--text); }
 .now-mark { text-transform: none; letter-spacing: 0; font-weight: 400; color: var(--muted); }
 .chips button.selected { background: var(--accent); border-color: var(--accent); color: var(--bg); }
+
+/* ── Gökyüzü hareket sistemi (briefs/gokyuzu-hareket.md) ─────────────────── */
+
+/* İşaret kutusu: halka ve kalem darbesiyle çizilen tik */
+.check-ring { fill: transparent; stroke: var(--muted); stroke-width: 1.8; transition: fill .25s ease, stroke .25s ease; }
+.check-mark {
+  fill: none; stroke: var(--bg); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round;
+  stroke-dasharray: 1; stroke-dashoffset: 1; transition: stroke-dashoffset .12s ease-in;
+}
+.task.done .check-ring { fill: var(--accent); stroke: var(--accent); }
+.task.done .check-mark { stroke-dashoffset: 0; transition: stroke-dashoffset .22s cubic-bezier(0.16, 1, 0.3, 1) .06s; }
+.check:active .check-ring { transform: scale(.88); transform-origin: center; transition: transform .1s ease; }
+
+/* Mürekkep: başlığın üstünü elle çizilmiş gibi kapatan dalgalı çizgi */
+.ink {
+  position: absolute; left: -2%; top: calc(50% - .22em); width: 104%; height: .5em;
+  overflow: visible; pointer-events: none;
+}
+.ink path {
+  fill: none; stroke: var(--muted); stroke-width: 1.6; stroke-linecap: round; vector-effect: non-scaling-stroke;
+  stroke-dasharray: 1; stroke-dashoffset: 1; transition: stroke-dashoffset .12s ease-in;
+}
+.task.done .ink path { stroke-dashoffset: 0; transition: stroke-dashoffset .36s cubic-bezier(0.65, 0, 0.35, 1) .16s; }
+
+/* Gecikmiş görev: gün geçtikçe milimetrik sarkma */
+.task.sagging .task-row {
+  transform: translateY(calc(var(--sag) * .5px)) rotate(calc(var(--sag) * -.1deg));
+  transform-origin: 0 50%;
+}
+.tasks { position: relative; }
+
+/* Günün yayı */
+.day-arc { margin: 4px 16px 10px; position: relative; }
+/* Yükseklik sabit; geniş ekranda yay uzamaz, ortada kalır. */
+.day-arc svg { display: block; width: 100%; height: 112px; overflow: visible; }
+.arc-track { fill: none; stroke: var(--line); stroke-width: 1.2; stroke-dasharray: .006 .012; stroke-linecap: round; }
+.arc-elapsed { fill: none; stroke: var(--sun); stroke-width: 1.6; stroke-linecap: round; opacity: .55; transition: stroke-dasharray 1.2s ease; }
+.arc-tick { fill: var(--muted); }
+.arc-horizon { stroke: var(--line); stroke-width: 1; }
+.arc-dusk { opacity: 0; transition: opacity 1.6s ease .5s; }
+.sun { transition: transform 1.6s cubic-bezier(0.45, 0, 0.2, 1); }
+.sun-disc { fill: var(--sun); }
+.star { fill: var(--star); }
+.star.arriving { animation: star-arrive .5s cubic-bezier(0.16, 1, 0.3, 1) .46s backwards; }
+@keyframes star-arrive {
+  0% { opacity: 0; transform: scale(2.6) rotate(-45deg); }
+  60% { opacity: 1; transform: scale(.8) rotate(8deg); }
+  100% { transform: scale(1) rotate(0); }
+}
+.constellation {
+  fill: none; stroke: var(--star); stroke-width: .8; stroke-linejoin: round; opacity: .7;
+  stroke-dasharray: 1; stroke-dashoffset: 1; transition: stroke-dashoffset .2s ease;
+}
+.milky-way { fill: none; stroke: var(--star); stroke-width: 18; stroke-linecap: round; opacity: .12; filter: blur(4px); }
+.day-arc.night .arc-dusk { opacity: .55; }
+.day-arc.night .constellation { stroke-dashoffset: 0; transition: stroke-dashoffset 1.8s cubic-bezier(0.65, 0, 0.35, 1) .9s; }
+.day-arc.night .arc-elapsed { opacity: .2; }
+.arc-part { font-size: 8.5px; letter-spacing: .08em; text-transform: uppercase; fill: var(--muted); }
+.arc-part.now { fill: var(--text); font-weight: 600; }
+
+/* Tamamlanan görevden yıldıza uçan ışık */
+.spark {
+  position: fixed; left: 0; top: 0; z-index: 10; width: 10px; height: 10px; border-radius: 50%;
+  pointer-events: none; background: var(--star);
+  box-shadow: 0 0 10px 3px color-mix(in srgb, var(--star) 60%, transparent);
+}
+
+/* Posta ayıklama: dünden kalanlar destesi */
+.review-count { color: var(--muted); font-weight: 400; margin-left: 4px; }
+.deck { position: relative; height: 92px; margin-top: 12px; }
+.deck[data-cards='2'] { height: 100px; }
+.deck[data-cards='3'] { height: 108px; }
+.card {
+  position: absolute; inset: 0 0 auto; height: 84px;
+  display: flex; flex-direction: column; justify-content: center; gap: 4px;
+  padding: 0 16px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface);
+  box-shadow: 0 4px 14px rgb(0 0 0 / .12);
+  transition: transform .45s cubic-bezier(0.34, 1.32, 0.64, 1);
+}
+.card[data-depth='1'] { transform: translateY(8px) scale(.96); opacity: .9; }
+.card[data-depth='2'] { transform: translateY(16px) scale(.92); opacity: .75; }
+.card.top { touch-action: none; cursor: grab; user-select: none; -webkit-user-select: none; animation: card-rise .32s cubic-bezier(0.16, 1, 0.3, 1); }
+.card.top.dragging { cursor: grabbing; transition: none; }
+@keyframes card-rise { from { transform: translateY(8px) scale(.96); } }
+.card-title { font-size: 17px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.card-meta { font-size: 13px; color: var(--muted); }
+.card-hint {
+  position: absolute; top: 10px; right: 12px; font-size: 12px; font-weight: 600; letter-spacing: .04em;
+  text-transform: uppercase; padding: 3px 8px; border-radius: 999px; opacity: 0; transition: opacity .15s ease;
+}
+.card-hint.show { opacity: 1; }
+.card-hint.hint-today { color: var(--bg); background: var(--accent); }
+.card-hint.hint-later { color: var(--text); background: var(--warn-bg); left: 12px; right: auto; }
+.card-hint.hint-delete { color: var(--bg); background: var(--danger); }
+
+/* Hareketi azalt: uzamsal hareket yok; durum değişimi kısa soluklaşma ve renkle anlaşılır */
+@media (prefers-reduced-motion: reduce) {
+  .sun, .arc-dusk, .arc-elapsed, .constellation, .card, .check-mark, .ink path { transition-duration: .01s !important; transition-delay: 0s !important; }
+  .star.arriving, .card.top { animation: none; }
+  .task.sagging .task-row { transform: none; }
+  .day-arc.night .constellation { transition: none; }
+}

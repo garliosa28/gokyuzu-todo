@@ -2,10 +2,11 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { useEffect } from 'react'
 import { byDayPart, morningReview, shouldCloseReview, todayView } from '../data/today'
 import { store } from './context'
+import { DayArc } from './DayArc'
 import { DAY_PART_LABELS } from './format'
 import { MorningReview } from './MorningReview'
 import { QuickAdd } from './QuickAdd'
-import { TaskItem } from './TaskItem'
+import { TaskList } from './TaskList'
 import { usePendingUndo } from './undo'
 import { useDayPart, useToday } from './useToday'
 
@@ -49,15 +50,14 @@ export function TodayScreen() {
       <header className="header">
         <h1>Bugün</h1>
       </header>
+      <DayArc tasks={view.today} nowPart={nowPart} />
       <main className="content">
         <QuickAdd placeholder="Bugün için görev ekle…" onAdd={(title) => store.addTask(title, { dueDate: today })} />
         {showingReview && <MorningReview tasks={review} today={today} />}
         {review.length === 0 && view.overdue.length > 0 && (
           <>
             <h2 className="section-title overdue">Gecikmiş</h2>
-            <ul className="tasks">
-              {view.overdue.map((t) => <TaskItem key={t.id} task={t} today={today} lists={lists} showList />)}
-            </ul>
+            <TaskList tasks={view.overdue} today={today} lists={lists} context="today" showList />
           </>
         )}
         {DAY_SECTIONS.map((part) => {
@@ -69,11 +69,7 @@ export function TodayScreen() {
                 {DAY_PART_LABELS[part]}
                 {part === nowPart && <span className="now-mark"> · şimdi</span>}
               </h2>
-              <ul className="tasks">
-                {items.map((t) => (
-                  <TaskItem key={t.id} task={t} today={today} lists={lists} showList showDayPart={false} />
-                ))}
-              </ul>
+              <TaskList tasks={items} today={today} lists={lists} context="today" showList showDayPart={false} />
             </section>
           )
         })}

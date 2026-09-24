@@ -1,7 +1,7 @@
 # Brief: "Gökyüzü" hareket sistemi
 
 > Durum: **onaylandı** (2026-09-24) · Kaynak: `/impeccable shape`
-> Uygulama: **veri tarafı tamam** (günün bölümü alanı, Geri al, asgari arayüz). **Hareket sistemi henüz yapılmadı** (`/impeccable animate`).
+> Uygulama: **tamam** (2026-09-24). Veri tarafı: günün bölümü, Geri al. Hareket: `src/ui/DayArc.tsx`, `arc.ts`, `flight.ts`, `useFlipList.ts`, `taskActions.ts`, `MorningReview.tsx`, `motion.ts`.
 > Mod: **Operate**. Hareket işi bitirmeye hizmet eder, bekletmez. "Gösterişli" = anlam taşıyan anlarda cesur, rutin anlarda hızlı.
 
 ## Tez

@@ -1,7 +1,7 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db, store } from './context'
 import { QuickAdd } from './QuickAdd'
-import { TaskItem } from './TaskItem'
+import { TaskList } from './TaskList'
 import { useToday } from './useToday'
 
 export function ListScreen({ listId, onBack }: { listId: string; onBack?: () => void }) {
@@ -28,15 +28,11 @@ export function ListScreen({ listId, onBack }: { listId: string; onBack?: () => 
         ) : (
           <QuickAdd onAdd={(title) => store.addTask(title, { listId })} />
         )}
-        <ul className="tasks">
-          {open.map((t) => <TaskItem key={t.id} task={t} today={today} lists={lists} />)}
-        </ul>
+        <TaskList tasks={open} today={today} lists={lists} context="list" />
         {done.length > 0 && (
           <>
             <h2 className="section-title">Tamamlanan</h2>
-            <ul className="tasks">
-              {done.map((t) => <TaskItem key={t.id} task={t} today={today} lists={lists} />)}
-            </ul>
+            <TaskList tasks={done} today={today} lists={lists} context="list" />
           </>
         )}
         {tasks?.length === 0 && <p className="empty">Henüz görev yok.</p>}
