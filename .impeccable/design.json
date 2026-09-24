@@ -4,43 +4,227 @@
   "title": "Design System: Todo",
   "extensions": {
     "colorMeta": {
-      "night-coal": { "role": "neutral", "displayName": "Gece Kömürü", "canonical": "#1c1c1b", "tonalRamp": ["#0e0e0d", "#1c1c1b", "#2a2a28", "#3a3936", "#55534f", "#7a7872", "#a8a59e", "#d6d3cc"] },
-      "bone-white": { "role": "neutral", "displayName": "Kemik Beyazı", "canonical": "#f0efea", "tonalRamp": ["#2d2c29", "#4a4944", "#6b6a64", "#8e8c85", "#b1afa8", "#d2d0ca", "#e6e5e0", "#f0efea"] },
-      "twilight-amber": { "role": "primary", "displayName": "Alacakaranlık Amberi", "canonical": "#f2b35a", "tonalRamp": ["#3d2506", "#63400f", "#8c5c18", "#b57a22", "#d9982f", "#f2b35a", "#f7cd90", "#fbe6c7"] },
-      "starlight": { "role": "primary", "displayName": "Yıldız Işığı", "canonical": "#f6e3a4", "tonalRamp": ["#3a3010", "#5e4e1c", "#85702b", "#ab913d", "#cdb35a", "#e8cf7c", "#f6e3a4", "#fcf4d8"] },
-      "deep-night": { "role": "neutral", "displayName": "Derin Gece", "canonical": "#0e1426", "tonalRamp": ["#070a13", "#0e1426", "#1a233d", "#2b3450", "#434e6d", "#646f8e", "#8f98b3", "#c1c7d8"] },
-      "paper": { "role": "neutral", "displayName": "Kâğıt", "canonical": "#f6f5f2", "tonalRamp": ["#2e2d2a", "#4c4b47", "#6e6c67", "#918f89", "#b4b2ac", "#d4d2cc", "#e8e6e1", "#f6f5f2"] },
-      "ink": { "role": "neutral", "displayName": "Mürekkep", "canonical": "#262624", "tonalRamp": ["#121211", "#262624", "#3a3a37", "#51514d", "#6c6b67", "#8a8984", "#aeada8", "#d3d2ce"] },
-      "morning-amber": { "role": "primary", "displayName": "Sabah Amberi", "canonical": "#e0902e" },
-      "day-star": { "role": "primary", "displayName": "Gün Yıldızı", "canonical": "#c48a1c" },
-      "dusk-blue": { "role": "neutral", "displayName": "Alacakaranlık Mavisi", "canonical": "#2b3450" },
-      "night-danger": { "role": "tertiary", "displayName": "Kor (koyu uyarı)", "canonical": "#e0826c" },
-      "paper-danger": { "role": "tertiary", "displayName": "Kiremit (açık uyarı)", "canonical": "#b4452f" },
-      "night-warm": { "role": "neutral", "displayName": "Sıcak Gece", "canonical": "#3a3226" },
-      "paper-warm": { "role": "neutral", "displayName": "Sıcak Kâğıt", "canonical": "#fbf3e4" }
+      "night-coal": {
+        "role": "neutral",
+        "displayName": "Gece Kömürü",
+        "canonical": "#1c1c1b",
+        "tonalRamp": [
+          "#0e0e0d",
+          "#1c1c1b",
+          "#2a2a28",
+          "#3a3936",
+          "#55534f",
+          "#7a7872",
+          "#a8a59e",
+          "#d6d3cc"
+        ]
+      },
+      "bone-white": {
+        "role": "neutral",
+        "displayName": "Kemik Beyazı",
+        "canonical": "#f0efea",
+        "tonalRamp": [
+          "#2d2c29",
+          "#4a4944",
+          "#6b6a64",
+          "#8e8c85",
+          "#b1afa8",
+          "#d2d0ca",
+          "#e6e5e0",
+          "#f0efea"
+        ]
+      },
+      "twilight-amber": {
+        "role": "primary",
+        "displayName": "Alacakaranlık Amberi",
+        "canonical": "#f2b35a",
+        "tonalRamp": [
+          "#3d2506",
+          "#63400f",
+          "#8c5c18",
+          "#b57a22",
+          "#d9982f",
+          "#f2b35a",
+          "#f7cd90",
+          "#fbe6c7"
+        ]
+      },
+      "starlight": {
+        "role": "primary",
+        "displayName": "Yıldız Işığı",
+        "canonical": "#f6e3a4",
+        "tonalRamp": [
+          "#3a3010",
+          "#5e4e1c",
+          "#85702b",
+          "#ab913d",
+          "#cdb35a",
+          "#e8cf7c",
+          "#f6e3a4",
+          "#fcf4d8"
+        ]
+      },
+      "deep-night": {
+        "role": "neutral",
+        "displayName": "Derin Gece",
+        "canonical": "#0e1426",
+        "tonalRamp": [
+          "#070a13",
+          "#0e1426",
+          "#1a233d",
+          "#2b3450",
+          "#434e6d",
+          "#646f8e",
+          "#8f98b3",
+          "#c1c7d8"
+        ]
+      },
+      "paper": {
+        "role": "neutral",
+        "displayName": "Kâğıt",
+        "canonical": "#f6f5f2",
+        "tonalRamp": [
+          "#2e2d2a",
+          "#4c4b47",
+          "#6e6c67",
+          "#918f89",
+          "#b4b2ac",
+          "#d4d2cc",
+          "#e8e6e1",
+          "#f6f5f2"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Mürekkep",
+        "canonical": "#262624",
+        "tonalRamp": [
+          "#121211",
+          "#262624",
+          "#3a3a37",
+          "#51514d",
+          "#6c6b67",
+          "#8a8984",
+          "#aeada8",
+          "#d3d2ce"
+        ]
+      },
+      "morning-amber": {
+        "role": "primary",
+        "displayName": "Sabah Amberi",
+        "canonical": "#e0902e"
+      },
+      "day-star": {
+        "role": "primary",
+        "displayName": "Gün Yıldızı",
+        "canonical": "#c48a1c"
+      },
+      "dusk-blue": {
+        "role": "neutral",
+        "displayName": "Alacakaranlık Mavisi",
+        "canonical": "#2b3450"
+      },
+      "night-danger": {
+        "role": "tertiary",
+        "displayName": "Kor (koyu uyarı)",
+        "canonical": "#e0826c"
+      },
+      "paper-danger": {
+        "role": "tertiary",
+        "displayName": "Kiremit (açık uyarı)",
+        "canonical": "#b4452f"
+      },
+      "night-warm": {
+        "role": "neutral",
+        "displayName": "Sıcak Gece",
+        "canonical": "#3a3226"
+      },
+      "paper-warm": {
+        "role": "neutral",
+        "displayName": "Sıcak Kâğıt",
+        "canonical": "#fbf3e4"
+      }
     },
     "typographyMeta": {
-      "display": { "displayName": "Ekran başlığı", "purpose": "Ekran başına tek başlık: Bugün, Gelen Kutusu, Listeler." },
-      "title": { "displayName": "Görev başlığı", "purpose": "Görev ve liste adları." },
-      "body": { "displayName": "Gövde", "purpose": "Açıklama metinleri." },
-      "label": { "displayName": "Bölüm etiketi", "purpose": "Büyük harfli bölüm başlıkları (Sabah, Öğle, Akşam, Gecikmiş)." },
-      "meta": { "displayName": "Alt bilgi", "purpose": "Tarih · liste · bölüm satırı." }
+      "display": {
+        "displayName": "Ekran başlığı",
+        "purpose": "Ekran başına tek başlık: Bugün, Gelen Kutusu, Listeler."
+      },
+      "title": {
+        "displayName": "Görev başlığı",
+        "purpose": "Görev ve liste adları."
+      },
+      "body": {
+        "displayName": "Gövde",
+        "purpose": "Açıklama metinleri."
+      },
+      "label": {
+        "displayName": "Bölüm etiketi",
+        "purpose": "Büyük harfli bölüm başlıkları (Sabah, Öğle, Akşam, Gecikmiş)."
+      },
+      "meta": {
+        "displayName": "Alt bilgi",
+        "purpose": "Tarih · liste · bölüm satırı."
+      },
+      "code": {
+        "displayName": "Kod",
+        "purpose": "Metin içindeki dosya adları ve ayarlar (.env, SETUP.md)."
+      }
     },
     "shadows": [
-      { "name": "floating-banner", "value": "0 6px 20px rgb(0 0 0 / .18)", "purpose": "Geri al ve yeni sürüm bantları." },
-      { "name": "deck-card", "value": "0 4px 14px rgb(0 0 0 / .12)", "purpose": "Sabah destesindeki kartlar." }
+      {
+        "name": "floating-banner",
+        "value": "0 6px 20px rgb(0 0 0 / .18)",
+        "purpose": "Geri al ve yeni sürüm bantları."
+      },
+      {
+        "name": "deck-card",
+        "value": "0 4px 14px rgb(0 0 0 / .12)",
+        "purpose": "Sabah destesindeki kartlar."
+      }
     ],
     "motion": [
-      { "name": "ease-out", "value": "cubic-bezier(0.16, 1, 0.3, 1)", "purpose": "Kendinden emin varış: tik çizimi, uçuş, kart yükselişi." },
-      { "name": "ease-in", "value": "cubic-bezier(0.55, 0, 0.9, 0.35)", "purpose": "Ağırlaşıp çıkış: düşme, ufka kayma, kart fırlatma." },
-      { "name": "settle", "value": "cubic-bezier(0.34, 1.32, 0.64, 1)", "purpose": "Yerçekimi: satırın ve kartın yayla yerine oturması (bilinçli hafif aşma)." },
-      { "name": "check-draw", "value": "220ms", "purpose": "Tikin kalem darbesiyle çizilmesi." },
-      { "name": "ink-draw", "value": "360ms", "purpose": "Mürekkep çizgisi." },
-      { "name": "flight", "value": "520ms", "purpose": "Görevden yıldıza uçan ışık." },
-      { "name": "celebration", "value": "1.6–1.8s", "purpose": "Takımyıldız, gece ve günbatımı; günün tek uzun anı." }
+      {
+        "name": "ease-out",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "Kendinden emin varış: tik çizimi, uçuş, kart yükselişi."
+      },
+      {
+        "name": "ease-in",
+        "value": "cubic-bezier(0.55, 0, 0.9, 0.35)",
+        "purpose": "Ağırlaşıp çıkış: düşme, ufka kayma, kart fırlatma."
+      },
+      {
+        "name": "settle",
+        "value": "cubic-bezier(0.34, 1.32, 0.64, 1)",
+        "purpose": "Yerçekimi: satırın ve kartın yayla yerine oturması (bilinçli hafif aşma)."
+      },
+      {
+        "name": "check-draw",
+        "value": "220ms",
+        "purpose": "Tikin kalem darbesiyle çizilmesi."
+      },
+      {
+        "name": "ink-draw",
+        "value": "360ms",
+        "purpose": "Mürekkep çizgisi."
+      },
+      {
+        "name": "flight",
+        "value": "520ms",
+        "purpose": "Görevden yıldıza uçan ışık."
+      },
+      {
+        "name": "celebration",
+        "value": "1.6–1.8s",
+        "purpose": "Takımyıldız, gece ve günbatımı; günün tek uzun anı."
+      }
     ],
     "breakpoints": [
-      { "name": "content-max", "value": "640px" }
+      {
+        "name": "content-max",
+        "value": "640px"
+      }
     ]
   },
   "components": [
@@ -112,10 +296,26 @@
       "Anlam taşıyan hareket: tik ve mürekkep çizimi, yerçekimi, günün yayı"
     ],
     "rules": [
-      { "name": "Gökyüzü Kuralı", "body": "Amber ve yıldız renkleri yalnızca gökyüzünde (yay, yıldızlar, uçan ışık) yaşar. Düğmeler, bağlantılar ya da vurgu metni amber kullanmaz.", "section": "colors" },
-      { "name": "İki Tema Kuralı", "body": "Her renk bir çift olarak tanımlanır (koyu / açık); yeni bir renk eklemek iki değer eklemek demektir. Değerler :root üzerinde CSS değişkeni olarak durur ve prefers-color-scheme ile değişir.", "section": "colors" },
-      { "name": "Ağırlıkla Vurgu Kuralı", "body": "Vurgu renkle değil ağırlık ve boyutla yapılır; renkli metin yalnızca durum bildirir (gecikmiş).", "section": "typography" },
-      { "name": "Düz-Varsayılan Kuralı", "body": "Satırlar, giriş alanları ve paneller düzdür. Gölge, \"bu şey diğerlerinin üstünde ve elle tutulabilir\" demektir; başka bir anlamda kullanılmaz.", "section": "elevation" }
+      {
+        "name": "Gökyüzü Kuralı",
+        "body": "Amber ve yıldız renkleri yalnızca gökyüzünde (yay, yıldızlar, uçan ışık) yaşar. Düğmeler, bağlantılar ya da vurgu metni amber kullanmaz.",
+        "section": "colors"
+      },
+      {
+        "name": "İki Tema Kuralı",
+        "body": "Her renk bir çift olarak tanımlanır (koyu / açık); yeni bir renk eklemek iki değer eklemek demektir. Değerler :root üzerinde CSS değişkeni olarak durur ve prefers-color-scheme ile değişir.",
+        "section": "colors"
+      },
+      {
+        "name": "Ağırlıkla Vurgu Kuralı",
+        "body": "Vurgu renkle değil ağırlık ve boyutla yapılır; renkli metin yalnızca durum bildirir (gecikmiş).",
+        "section": "typography"
+      },
+      {
+        "name": "Düz-Varsayılan Kuralı",
+        "body": "Satırlar, giriş alanları ve paneller düzdür. Gölge, \"bu şey diğerlerinin üstünde ve elle tutulabilir\" demektir; başka bir anlamda kullanılmaz.",
+        "section": "elevation"
+      }
     ],
     "dos": [
       "Do hareketi dünyanın fiziğiyle anlat: düşme ve oturma için yerçekimi, izler için mürekkep, gün için gökyüzü.",

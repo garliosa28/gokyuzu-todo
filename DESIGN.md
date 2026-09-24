@@ -47,6 +47,9 @@ typography:
     fontFamily: "-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif"
     fontSize: "13px"
     fontWeight: 400
+  code:
+    fontFamily: "ui-monospace, Menlo, Consolas, monospace"
+    fontSize: "0.9em"
 rounded:
   sm: "8px"
   md: "12px"
@@ -145,6 +148,7 @@ Sıcak nötrlerden oluşan sessiz bir palet; tek renk olayı gökyüzünde gerç
 
 **Display Font:** Sistem yazı tipi (-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif)
 **Body Font:** Aynı sistem yazı tipi
+**Label/Mono Font:** Platformun eş aralıklı yazı tipi (ui-monospace, Menlo, Consolas); yalnızca dosya adı ve ayar gibi kod parçaları için
 
 **Character:** iPhone'da San Francisco, bilgisayarda platformun kendi yazı tipi: cihazın parçası gibi hissettiren, okunaklı ve iddiasız bir ses. Kişilik yazı tipinden değil, mürekkep ve gökyüzünden geliyor.
 
@@ -154,6 +158,7 @@ Sıcak nötrlerden oluşan sessiz bir palet; tek renk olayı gökyüzünde gerç
 - **Body** (400, 16px, 1.5): Senkronizasyon ekranı gibi açıklama metinleri.
 - **Label** (600, 13px, 0.04em, büyük harf): Bölüm başlıkları (Sabah, Öğle, Akşam, Gecikmiş, Tamamlanan). Şu anki bölüm metin rengine yükselir.
 - **Meta** (400, 13px): Görev alt bilgisi (tarih · liste · bölüm), soluk renkte; gecikmişse uyarı renginde.
+- **Code** (eş aralıklı, çevre metnin %90'ı): Metin içindeki dosya adları ve ayarlar (`.env`, `SETUP.md`). Yalnız "monospace" yazılmaz; tarayıcı o durumda 13px temel boyuta düşer.
 
 ### Named Rules
 **Ağırlıkla Vurgu Kuralı.** Vurgu renkle değil ağırlık ve boyutla yapılır; renkli metin yalnızca durum bildirir (gecikmiş).
