@@ -2,7 +2,11 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
+// Yayın alt yolda olabilir (GitHub Pages: /gokyuzu-todo/); yerelde kök.
+const base = process.env.BASE_PATH ?? '/'
+
 export default defineConfig({
+  base,
   plugins: [
     react(),
     VitePWA({
@@ -13,7 +17,9 @@ export default defineConfig({
         name: 'Todo',
         short_name: 'Todo',
         lang: 'tr',
-        start_url: '/',
+        // Uygulamanın yayınlandığı yola göre: başka bir alt yolda da kurulabilsin.
+        start_url: base,
+        scope: base,
         display: 'standalone',
         background_color: '#f6f5f2',
         theme_color: '#f6f5f2',
